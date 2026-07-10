@@ -222,7 +222,7 @@
 
     // ===== Consultation & Assessment button handler =====
     // ALL consult/assess actions open chat.html in a new tab
-    var CHAT_URL = 'https://overseas-consultant.github.io/Yingxi/chat.html';
+    var CHAT_URL = 'https://overseas-consultant.github.io/Yingxi/chat.html?v=20260710x';
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
