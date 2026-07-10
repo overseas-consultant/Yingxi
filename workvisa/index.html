@@ -375,31 +375,6 @@
     </button>
   </div>
 
-  <!-- ===== Consultation Modal (OpenHex Real-time Chat) ===== -->
-  <div class="overlay" id="consult-modal">
-    <div class="modal" style="max-width:520px">
-      <button class="modal-close" aria-label="关闭">✕</button>
-      <h3>在线咨询</h3>
-      <p class="modal-desc">与AI跨境规划顾问实时对话</p>
-      <div style="margin-top:16px">
-        <iframe
-          id="openhex-chat-frame"
-          data-src="https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6"
-          src="about:blank"
-          style="width:100%;height:520px;border:none;border-radius:8px;background:#f5f6f7"
-          title="AI跨境规划顾问"
-          allow="microphone; camera"
-          onload="this.dataset.loaded='1'"
-          onerror="this.dataset.failed='1'">
-        </iframe>
-        <div id="chat-fallback" style="display:none;text-align:center;padding:40px 20px">
-          <p style="color:var(--gray-500);margin-bottom:16px">如对话窗口未正常显示，请点击下方按钮直接进入对话</p>
-          <a href="https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6" target="_blank" class="btn btn-primary btn-lg">立即对话 →</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ===== Payment Modal ===== -->
   <div class="overlay" id="payment-modal">
     <div class="modal">
@@ -411,6 +386,7 @@
     </div>
   </div>
 
-  <script src="../assets/js/main.js?v=20260710c"></script>
+  <script src="../assets/js/main.js?v=20260710v5"></script>
+  <script src="../assets/js/chat-widget.js?v=20260710v2"></script>
 </body>
 </html>

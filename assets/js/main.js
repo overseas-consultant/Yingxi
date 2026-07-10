@@ -221,32 +221,7 @@
     });
 
     // ===== Consultation & Assessment button handler =====
-    // ALL consult/assess actions open OpenHex real-time chat
-    var OPENHEX_URL = 'https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6';
-
-    document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        var modal = document.getElementById('consult-modal');
-        if (modal) {
-          openModal(modal);
-          // Load OpenHex iframe
-          var iframe = modal.querySelector('#openhex-chat-frame');
-          var fallback = modal.querySelector('#chat-fallback');
-          if (iframe) {
-            // Reset loaded state and always load fresh
-            delete iframe.dataset.loaded;
-            iframe.src = OPENHEX_URL;
-            // Show fallback if iframe doesn't load within 5 seconds
-            setTimeout(function() {
-              if (!iframe.dataset.loaded) {
-                if (fallback) fallback.style.display = '';
-              }
-            }, 5000);
-          }
-        }
-      });
-    });
+    // 由 chat-widget.js 自动接管，这里不再处理
   }
 
   /* ===== Smooth scroll for anchor links ===== */
