@@ -225,7 +225,7 @@
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        window.open('https://overseas-consultant.github.io/Yingxi/chat.html', '_blank');
+        window.open('https://overseas-consultant.github.io/Yingxi/chat.html?v=clean', '_blank');
       });
     });
   }
