@@ -222,7 +222,7 @@
 
     // ===== Consultation & Assessment button handler =====
     // ALL consult/assess actions open OpenHex real-time chat
-    var OPENHEX_URL = 'https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6';
+    var OPENHEX_URL = 'https://overseas-consultant.github.io/Yingxi/chat.html';
 
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
