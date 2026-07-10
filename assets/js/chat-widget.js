@@ -1,35 +1,30 @@
 /**
- * 星途 LumiPath · AI跨境规划顾问 · 聊天+表单组件 v3
- * - 咨询模式：AI对话引导收集信息
- * - 测评模式：表单直收集信息
- * - 线索提交到Worker → 写入飞书多维表格CRM
- * - 无Worker时本地存储+引导
+ * 星途 LumiPath · AI跨境规划顾问 · 聊天+测评+支付组件 v4
+ * 参照妙搭参考站设计：
+ * - 咨询：白底卡片，蓝色头部，机器人头像，6个快捷入口，对话输入
+ * - 测评：紫色头部，3步引导式（兴趣→学业→目标），开始测评按钮
+ * - 支付：支付宝扫码弹窗，收款码+操作指引
  */
 (function () {
   'use strict';
 
   var CONFIG = {
     apiEndpoint: '',
-    logoUrl: 'https://overseas-consultant.github.io/Yingxi/assets/images/logo.png',
+    logoUrl: '',
     leadMarker: '[LEAD_COMPLETE]',
-    // 飞书CRM配置（Worker会用到）
     feishuBaseToken: 'Ck0QbHqOmaR457sRnE1ckmvTn6d',
     feishuTableId: 'tblDJLF1SHgmSV2p',
-    modes: {
-      consult: {
-        title: '星途 LumiPath 跨境规划顾问',
-        subtitle: 'AI智能对话 · 7×24小时在线',
-        welcome: '您好！我是星途LumiPath的AI跨境规划顾问 🌟\n\n可以为您解答出国工作、留学升学、跨境旅游、移民、AI就业等方面的问题。\n\n请问您想咨询哪方面？可以直接打字，或点击下方快捷入口。',
-        quickReplies: [
-          { text: '出国工作签', value: '我想了解出国工作签证，有什么条件？' },
-          { text: '低龄升学', value: '我想了解低龄升学路径，不走高考能上名校吗？' },
-          { text: '跨境旅游', value: '我想了解跨境旅游服务' },
-          { text: '留学移民', value: '我想了解留学移民方案和费用' },
-          { text: 'AI转岗就业', value: '我想了解AI转岗课程和内推' },
-          { text: '费用咨询', value: '各项服务大概费用是多少？' }
-        ]
-      }
-    }
+    // 支付二维码图片路径（相对页面根）
+    paymentQrUrl: '',
+    // 咨询快捷入口
+    quickTopics: [
+      { icon: '🎓', title: '新加坡跳板', desc: '本科直升 · 硕士直申 · PSB Academy' },
+      { icon: '🎓', title: '名校直申', desc: '英国G5 · 澳洲八大 · 美国Top50' },
+      { icon: '💰', title: '费用与奖学金', desc: '四国费用对比 · 奖学金申请指南' },
+      { icon: '📑', title: '签证与认证', desc: '签证政策 · 中留服认证 · 学历认可' },
+      { icon: '✨', title: '个性规划', desc: 'AI测评 · 选校推荐 · 一对一咨询' },
+      { icon: '🎓', title: '技能院校', desc: '就业导向 · 澳洲TAFE · 可移民' }
+    ]
   };
 
   var messages = [];
@@ -41,559 +36,283 @@
   var inputElement = null;
   var sendButton = null;
   var quickBar = null;
+  var assessStep = 0;
+  var assessData = {};
+
+  // ========== 注入样式 ==========
+  function injectStyles() {
+    if (document.getElementById('lumipath-widget-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'lumipath-widget-styles';
+    style.textContent = `
+      @keyframes lpFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes lpScaleIn { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+      @keyframes lpPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+      @keyframes lpBounce { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
+      @keyframes lpSlideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+      .lp-overlay { position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:99999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px); }
+      .lp-overlay.show { display:flex;animation:lpFadeIn .25s ease; }
+      .lp-dialog { background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;animation:lpScaleIn .3s cubic-bezier(.4,0,.2,1); }
+
+      /* 咨询弹窗 */
+      .lp-chat-dialog { width:100%;max-width:440px;height:85vh;max-height:680px; }
+      .lp-chat-header { background:linear-gradient(135deg,#4f46e5,#6366f1);padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0; }
+      .lp-chat-header .lp-bot-avatar { width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+      .lp-chat-header .lp-header-info { flex:1;min-width:0; }
+      .lp-chat-header .lp-header-title { color:#fff;font-weight:700;font-size:1rem; }
+      .lp-chat-header .lp-header-sub { color:rgba(255,255,255,.7);font-size:.72rem;margin-top:2px; }
+      .lp-chat-header .lp-header-status { display:flex;align-items:center;gap:4px;color:#86efac;font-size:.7rem;flex-shrink:0; }
+      .lp-chat-header .lp-header-status span { width:7px;height:7px;background:#86efac;border-radius:50%;animation:lpPulse 2s infinite; }
+      .lp-chat-header .lp-close-btn { background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:4px 8px;flex-shrink:0;transition:color .2s; }
+      .lp-chat-header .lp-close-btn:hover { color:#fff; }
+
+      .lp-chat-body { flex:1;overflow:hidden;display:flex;flex-direction:column;background:#f8fafc; }
+      .lp-messages { flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent; }
+      .lp-messages::-webkit-scrollbar { width:5px; }
+      .lp-messages::-webkit-scrollbar-track { background:transparent; }
+      .lp-messages::-webkit-scrollbar-thumb { background:#cbd5e1;border-radius:3px; }
+
+      .lp-welcome { display:flex;gap:10px;align-items:flex-start; }
+      .lp-welcome .lp-welcome-avatar { width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#6366f1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+      .lp-welcome .lp-welcome-bubble { background:#fff;border:1px solid #e2e8f0;border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:.85rem;color:#334155;line-height:1.6; }
+      .lp-welcome .lp-welcome-bubble b { color:#4f46e5; }
+
+      .lp-quick-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 12px; }
+      .lp-quick-item { background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .2s;text-align:left; }
+      .lp-quick-item:hover { border-color:#6366f1;background:#eef2ff;transform:translateY(-1px);box-shadow:0 2px 8px rgba(99,102,241,.1); }
+      .lp-quick-item .lp-qi-icon { font-size:1.1rem; }
+      .lp-quick-item .lp-qi-title { font-weight:600;font-size:.82rem;color:#1e293b;margin-top:2px; }
+      .lp-quick-item .lp-qi-desc { font-size:.7rem;color:#64748b;margin-top:2px; }
+
+      .lp-msg { display:flex;flex-direction:column;animation:lpFadeIn .3s ease; }
+      .lp-msg.user { align-items:flex-end; }
+      .lp-msg.ai { align-items:flex-start; }
+      .lp-msg .lp-bubble { max-width:80%;padding:10px 14px;border-radius:14px;font-size:.85rem;line-height:1.6;word-break:break-word;white-space:pre-wrap; }
+      .lp-msg.user .lp-bubble { background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border-radius:14px 14px 4px 14px; }
+      .lp-msg.ai .lp-bubble { background:#fff;border:1px solid #e2e8f0;color:#334155;border-radius:14px 14px 14px 4px; }
+
+      .lp-typing { display:flex;gap:4px;padding:6px 0; }
+      .lp-typing span { width:7px;height:7px;background:#94a3b8;border-radius:50%;animation:lpBounce 1.4s infinite both; }
+      .lp-typing span:nth-child(2) { animation-delay:.16s; }
+      .lp-typing span:nth-child(3) { animation-delay:.32s; }
+
+      .lp-input-bar { display:flex;gap:8px;padding:10px 14px;flex-shrink:0;background:#fff;border-top:1px solid #e2e8f0; }
+      .lp-input-bar textarea { flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;color:#334155;font-size:.85rem;resize:none;outline:none;font-family:inherit;max-height:80px;line-height:1.5;transition:border-color .2s; }
+      .lp-input-bar textarea:focus { border-color:#6366f1;background:#fff; }
+      .lp-input-bar button { flex-shrink:0;width:40px;height:40px;border:none;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:18px;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center; }
+      .lp-input-bar button:disabled { opacity:.5;cursor:not-allowed; }
+
+      .lp-lead-status { display:flex;justify-content:center;padding:4px 0;animation:lpFadeIn .3s ease; }
+      .lp-lead-status .lp-status-bubble { background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:6px 16px;color:#4f46e5;font-size:.75rem; }
+
+      .lp-inline-form { background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-top:8px;animation:lpFadeIn .3s ease; }
+      .lp-inline-form .lp-form-title { color:#4f46e5;font-size:.85rem;font-weight:600;margin-bottom:12px; }
+      .lp-inline-form .lp-form-desc { color:#64748b;font-size:.75rem;margin-bottom:14px;line-height:1.5; }
+      .lp-inline-form input { width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;color:#334155;font-size:.82rem;outline:none;margin-bottom:8px;box-sizing:border-box;transition:border-color .2s; }
+      .lp-inline-form input:focus { border-color:#6366f1; }
+      .lp-inline-form button { width:100%;padding:8px;border:none;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-weight:600;font-size:.82rem;cursor:pointer;transition:opacity .2s; }
+      .lp-inline-form button:hover { opacity:.9; }
+
+      /* 测评弹窗 */
+      .lp-assess-dialog { width:100%;max-width:480px;max-height:90vh;overflow-y:auto; }
+      .lp-assess-header { background:linear-gradient(135deg,#7c3aed,#a855f7);padding:16px 18px;display:flex;align-items:center;gap:12px; }
+      .lp-assess-header .lp-assess-icon { width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+      .lp-assess-header .lp-assess-title { color:#fff;font-weight:700;font-size:1rem; }
+      .lp-assess-header .lp-assess-sub { color:rgba(255,255,255,.7);font-size:.72rem;margin-top:2px; }
+      .lp-assess-header .lp-close-btn { background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:4px 8px;flex-shrink:0;margin-left:auto;transition:color .2s; }
+      .lp-assess-header .lp-close-btn:hover { color:#fff; }
+      .lp-assess-body { padding:24px 20px;background:#fff; }
+
+      .lp-assess-intro { text-align:center;margin-bottom:24px; }
+      .lp-assess-intro .lp-intro-icon { width:64px;height:64px;margin:0 auto 12px;background:linear-gradient(135deg,#f3e8ff,#e9d5ff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px; }
+      .lp-assess-intro .lp-intro-title { font-size:1.2rem;font-weight:700;color:#1e293b;margin-bottom:8px; }
+      .lp-assess-intro .lp-intro-desc { font-size:.85rem;color:#64748b;line-height:1.6;max-width:360px;margin:0 auto; }
+
+      .lp-step-list { display:flex;flex-direction:column;gap:12px;margin-bottom:24px; }
+      .lp-step-item { display:flex;gap:12px;align-items:flex-start;padding:14px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0; }
+      .lp-step-item .lp-step-num { width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+      .lp-step-item .lp-step-content .lp-step-label { font-size:.7rem;color:#a855f7;font-weight:600;text-transform:uppercase;letter-spacing:.5px; }
+      .lp-step-item .lp-step-content .lp-step-title { font-size:.9rem;font-weight:600;color:#1e293b;margin-top:2px; }
+      .lp-step-item .lp-step-content .lp-step-q { font-size:.78rem;color:#64748b;margin-top:2px; }
+
+      .lp-assess-btn { width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px; }
+      .lp-assess-btn:hover { opacity:.9;transform:translateY(-1px);box-shadow:0 4px 12px rgba(99,102,241,.3); }
+
+      /* 测评步骤页 */
+      .lp-assess-step { animation:lpSlideUp .4s ease; }
+      .lp-assess-step .lp-step-header { display:flex;align-items:center;gap:8px;margin-bottom:16px; }
+      .lp-assess-step .lp-step-header .lp-back-btn { background:none;border:none;color:#64748b;font-size:.85rem;cursor:pointer;padding:4px 8px; }
+      .lp-assess-step .lp-step-header .lp-step-indicator { font-size:.78rem;color:#a855f7;font-weight:600; }
+      .lp-assess-step .lp-step-title { font-size:1.1rem;font-weight:700;color:#1e293b;margin-bottom:8px; }
+      .lp-assess-step .lp-step-question { font-size:.85rem;color:#64748b;margin-bottom:16px; }
+
+      .lp-options { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px; }
+      .lp-option-chip { padding:10px 16px;border-radius:20px;border:2px solid #e2e8f0;background:#fff;color:#475569;font-size:.85rem;cursor:pointer;transition:all .2s; }
+      .lp-option-chip:hover { border-color:#a855f7;background:#faf5ff; }
+      .lp-option-chip.selected { border-color:#7c3aed;background:#f3e8ff;color:#7c3aed;font-weight:600; }
+
+      .lp-text-input { width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:.9rem;color:#334155;outline:none;transition:border-color .2s;box-sizing:border-box;margin-bottom:16px; }
+      .lp-text-input:focus { border-color:#a855f7; }
+
+      .lp-next-btn { width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .2s; }
+      .lp-next-btn:hover { opacity:.9; }
+      .lp-next-btn:disabled { opacity:.5;cursor:not-allowed; }
+
+      .lp-assess-success { text-align:center;padding:20px 0;animation:lpFadeIn .4s ease; }
+      .lp-assess-success .lp-success-icon { font-size:3rem;margin-bottom:12px; }
+      .lp-assess-success .lp-success-title { color:#7c3aed;font-size:1.2rem;font-weight:700;margin-bottom:8px; }
+      .lp-assess-success .lp-success-desc { color:#64748b;font-size:.85rem;line-height:1.8;max-width:320px;margin:0 auto; }
+      .lp-assess-success .lp-success-tip { color:#64748b;font-size:.78rem;margin-top:16px;padding:10px 16px;background:#f3e8ff;border-radius:8px;border:1px solid #e9d5ff; }
+
+      /* 支付弹窗 */
+      .lp-pay-dialog { width:100%;max-width:360px; }
+      .lp-pay-header { display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #e2e8f0; }
+      .lp-pay-header .lp-pay-title { font-size:1rem;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:6px; }
+      .lp-pay-header .lp-close-btn { background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px 8px;transition:color .2s; }
+      .lp-pay-header .lp-close-btn:hover { color:#1e293b; }
+      .lp-pay-body { padding:20px;text-align:center; }
+      .lp-pay-tip { font-size:.85rem;color:#64748b;margin-bottom:16px; }
+      .lp-qr-wrap { background:linear-gradient(135deg,#f0f7ff,#e6f0ff);border-radius:12px;padding:16px;border:1px solid #dbeafe; }
+      .lp-qr-recommend { background:#1677ff;color:#fff;font-size:.72rem;padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:12px; }
+      .lp-qr-notice { background:#fef3c7;color:#92400e;font-size:.72rem;padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:12px; }
+      .lp-qr-img { width:200px;height:200px;margin:0 auto 8px;border-radius:8px;border:1px solid #e2e8f0;object-fit:contain;background:#fff; }
+      .lp-qr-brand { font-size:.78rem;color:#475569;font-weight:600;margin-top:4px; }
+      .lp-qr-alipay-logo { font-size:.75rem;color:#1677ff;margin-top:8px;font-weight:600; }
+      .lp-pay-instructions { font-size:.78rem;color:#64748b;margin-top:16px;line-height:1.8; }
+      .lp-pay-notice { font-size:.75rem;color:#64748b;margin-top:8px;padding:8px 12px;background:#f8fafc;border-radius:8px; }
+      .lp-pay-btn { width:100%;padding:12px;border:none;border-radius:10px;background:#1677ff;color:#fff;font-weight:600;font-size:.9rem;cursor:pointer;margin-top:16px;transition:opacity .2s; }
+      .lp-pay-btn:hover { opacity:.9; }
+
+      @media (max-width:500px) {
+        .lp-chat-dialog { height:90vh;max-height:none;border-radius:0; }
+        .lp-assess-dialog { max-height:95vh;border-radius:0; }
+        .lp-pay-dialog { border-radius:0; }
+        .lp-overlay { align-items:flex-end; }
+        .lp-dialog { border-radius:16px 16px 0 0 !important; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
 
   // ========== 创建模态框 ==========
   function createModal() {
     if (modal) return modal;
+    injectStyles();
     var overlay = document.createElement('div');
-    overlay.className = 'lumipath-chat-overlay';
-    overlay.style.cssText = ['position:fixed','top:0','left:0','width:100%','height:100%','background:rgba(0,0,0,0.6)','z-index:99999','display:none','align-items:center','justify-content:center','backdrop-filter:blur(4px)','-webkit-backdrop-filter:blur(4px)'].join(';');
-    var dialog = document.createElement('div');
-    dialog.className = 'lumipath-chat-dialog';
-    dialog.style.cssText = ['width:100%','max-width:440px','height:85vh','max-height:700px','background:#0a1628','border-radius:16px','overflow:hidden','display:flex','flex-direction:column','box-shadow:0 8px 32px rgba(0,0,0,0.4)','border:1px solid rgba(212,175,55,0.2)'].join(';');
-    var header = createHeader();
-    var bodyWrapper = document.createElement('div');
-    bodyWrapper.style.cssText = 'flex:1;overflow:hidden;display:flex;flex-direction:column';
-    messagesContainer = document.createElement('div');
-    messagesContainer.className = 'lumipath-chat-messages';
-    messagesContainer.style.cssText = ['flex:1','overflow-y:auto','padding:16px','display:flex','flex-direction:column','gap:12px','scrollbar-width:thin','scrollbar-color:#1a2a42 transparent'].join(';');
-    var style = document.createElement('style');
-    style.textContent = ['.lumipath-chat-messages::-webkit-scrollbar{width:5px}','.lumipath-chat-messages::-webkit-scrollbar-track{background:transparent}','.lumipath-chat-messages::-webkit-scrollbar-thumb{background:#1a2a42;border-radius:3px}','@keyframes lumipath-pulse{0%,100%{opacity:1}50%{opacity:.4}}','@keyframes lumipath-bounce{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}','@keyframes lumipath-fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}','.lumipath-form-input:focus{border-color:rgba(212,175,55,0.6)!important}','.lumipath-form-select:focus{border-color:rgba(212,175,55,0.6)!important}'].join('\n');
-    document.head.appendChild(style);
-    quickBar = document.createElement('div');
-    quickBar.style.cssText = ['display:flex','gap:8px','padding:8px 12px','overflow-x:auto','flex-shrink:0','border-top:1px solid rgba(255,255,255,0.05)','background:#0d1f35','scrollbar-width:none'].join(';');
-    var quickStyle = document.createElement('style');
-    quickStyle.textContent = '.lumipath-quick-bar::-webkit-scrollbar{display:none}';
-    document.head.appendChild(quickStyle);
-    var inputBar = document.createElement('div');
-    inputBar.style.cssText = ['display:flex','gap:8px','padding:10px 12px','flex-shrink:0','background:#0d1f35','border-top:1px solid rgba(255,255,255,0.05)'].join(';');
-    inputElement = document.createElement('textarea');
-    inputElement.placeholder = '输入您的问题...';
-    inputElement.rows = 1;
-    inputElement.style.cssText = ['flex:1','background:#0a1628','border:1px solid rgba(255,255,255,0.1)','border-radius:10px','padding:10px 14px','color:#e0e6f0','font-size:.85rem','resize:none','outline:none','font-family:inherit','max-height:80px','line-height:1.5','transition:border-color .2s'].join(';');
-    inputElement.onfocus = function(){inputElement.style.borderColor='rgba(212,175,55,0.5)'};
-    inputElement.onblur = function(){inputElement.style.borderColor='rgba(255,255,255,0.1)'};
-    inputElement.oninput = function(){inputElement.style.height='auto';inputElement.style.height=Math.min(inputElement.scrollHeight,80)+'px'};
-    inputElement.onkeydown = function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend()}};
-    sendButton = document.createElement('button');
-    sendButton.textContent = '发送';
-    sendButton.style.cssText = ['flex-shrink:0','padding:0 20px','border:none','border-radius:10px','background:linear-gradient(135deg,#d4af37,#b8941f)','color:#0a1628','font-weight:600','font-size:.85rem','cursor:pointer','transition:opacity .2s'].join(';');
-    sendButton.onclick = handleSend;
-    inputBar.appendChild(inputElement);
-    inputBar.appendChild(sendButton);
-    bodyWrapper.appendChild(messagesContainer);
-    bodyWrapper.appendChild(quickBar);
-    bodyWrapper.appendChild(inputBar);
-    dialog.appendChild(header);
-    dialog.appendChild(bodyWrapper);
-    overlay.appendChild(dialog);
-    overlay.addEventListener('click', function(e){if(e.target===overlay)hideModal()});
-    document.addEventListener('keydown', function(e){if(e.key==='Escape'&&modal&&modal.style.display==='flex')hideModal()});
+    overlay.className = 'lp-overlay';
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) hideModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && modal && modal.classList.contains('show')) hideModal(); });
     document.body.appendChild(overlay);
     modal = overlay;
     return modal;
   }
 
-  function createHeader() {
-    var header = document.createElement('div');
-    header.style.cssText = ['background:#0d1f35','padding:12px 16px','display:flex','align-items:center','gap:10px','flex-shrink:0','border-bottom:1px solid rgba(212,175,55,0.15)'].join(';');
-    var logoWrap = document.createElement('div');
-    logoWrap.style.cssText = 'width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#d4af37';
-    var logoImg = document.createElement('img');
-    logoImg.src = CONFIG.logoUrl;
-    logoImg.style.cssText = 'width:100%;height:100%;object-fit:cover';
-    logoImg.onerror = function(){logoWrap.style.display='none'};
-    logoWrap.appendChild(logoImg);
-    var titleWrap = document.createElement('div');
-    titleWrap.style.cssText = 'flex:1;min-width:0';
-    var title = document.createElement('div');
-    title.id = 'lumipath-chat-title';
-    title.style.cssText = 'color:#fff;font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
-    var subtitle = document.createElement('div');
-    subtitle.id = 'lumipath-chat-subtitle';
-    subtitle.style.cssText = 'color:#8a9bb5;font-size:.72rem;margin-top:2px';
-    titleWrap.appendChild(title);
-    titleWrap.appendChild(subtitle);
-    var statusDot = document.createElement('div');
-    statusDot.style.cssText = 'display:flex;align-items:center;gap:4px;color:#4ade80;font-size:.7rem;flex-shrink:0';
-    var dot = document.createElement('span');
-    dot.style.cssText = 'width:7px;height:7px;background:#4ade80;border-radius:50%;animation:lumipath-pulse 2s infinite';
-    statusDot.appendChild(dot);
-    statusDot.appendChild(document.createTextNode('在线'));
-    var closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '&times;';
-    closeBtn.style.cssText = ['background:none','border:none','color:#8a9bb5','font-size:22px','cursor:pointer','padding:0 4px','line-height:1','flex-shrink:0','transition:color .2s'].join(';');
-    closeBtn.onmouseenter = function(){closeBtn.style.color='#fff'};
-    closeBtn.onmouseleave = function(){closeBtn.style.color='#8a9bb5'};
-    closeBtn.onclick = hideModal;
-    header.appendChild(logoWrap);
-    header.appendChild(titleWrap);
-    header.appendChild(statusDot);
-    header.appendChild(closeBtn);
-    return header;
+  function getPaymentQrUrl() {
+    if (CONFIG.paymentQrUrl) return CONFIG.paymentQrUrl;
+    // 自动检测路径（首页和子页面）
+    var base = window.location.pathname;
+    if (base.indexOf('/study/') !== -1 || base.indexOf('/travel/') !== -1 || base.indexOf('/workvisa/') !== -1) {
+      return '../assets/images/payment-qr.png';
+    }
+    return 'assets/images/payment-qr.png';
+  }
+
+  function getLogoUrl() {
+    if (CONFIG.logoUrl) return CONFIG.logoUrl;
+    var base = window.location.pathname;
+    if (base.indexOf('/study/') !== -1 || base.indexOf('/travel/') !== -1 || base.indexOf('/workvisa/') !== -1) {
+      return '../assets/images/logo.png';
+    }
+    return 'assets/images/logo.png';
   }
 
   // ========== 咨询模式 ==========
-  function setConsultMode() {
-    currentMode = 'consult';
-    var modeConfig = CONFIG.modes.consult;
-    var titleEl = document.getElementById('lumipath-chat-title');
-    var subtitleEl = document.getElementById('lumipath-chat-subtitle');
-    if (titleEl) titleEl.textContent = modeConfig.title;
-    if (subtitleEl) subtitleEl.textContent = modeConfig.subtitle;
-    // 显示聊天UI，隐藏表单UI
-    messagesContainer.style.display = '';
-    quickBar.style.display = 'flex';
-    var inputBar = quickBar.nextElementSibling;
-    if (inputBar) inputBar.style.display = 'flex';
+  function showConsultModal() {
+    createModal();
+    modal.innerHTML = '';
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-chat-dialog';
+
+    // 头部
+    var header = document.createElement('div');
+    header.className = 'lp-chat-header';
+    header.innerHTML = `
+      <div class="lp-bot-avatar">🤖</div>
+      <div class="lp-header-info">
+        <div class="lp-header-title">咨询顾问</div>
+        <div class="lp-header-sub">AI智能顾问 · 留学规划 · 选校推荐 · 实时答疑</div>
+      </div>
+      <div class="lp-header-status"><span></span>在线</div>
+      <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+    `;
+    dialog.appendChild(header);
+
+    // 主体
+    var body = document.createElement('div');
+    body.className = 'lp-chat-body';
+
+    messagesContainer = document.createElement('div');
+    messagesContainer.className = 'lp-messages';
+
+    // 欢迎语
+    var welcome = document.createElement('div');
+    welcome.className = 'lp-welcome';
+    welcome.innerHTML = `
+      <div class="lp-welcome-avatar">🤖</div>
+      <div class="lp-welcome-bubble">你好！我是<b>小西</b>👋<br>星途LumiPath AI跨境规划顾问，请选择您感兴趣的方向或直接提问</div>
+    `;
+    messagesContainer.appendChild(welcome);
+
+    // 快捷入口
+    var quickGrid = document.createElement('div');
+    quickGrid.className = 'lp-quick-grid';
+    CONFIG.quickTopics.forEach(function(topic) {
+      var item = document.createElement('div');
+      item.className = 'lp-quick-item';
+      item.innerHTML = `<div class="lp-qi-icon">${topic.icon}</div><div class="lp-qi-title">${topic.title}</div><div class="lp-qi-desc">${topic.desc}</div>`;
+      item.onclick = function() {
+        quickGrid.style.display = 'none';
+        sendMessage('我想了解' + topic.title + '，' + topic.desc);
+      };
+      quickGrid.appendChild(item);
+    });
+    messagesContainer.appendChild(quickGrid);
+
+    body.appendChild(messagesContainer);
+
+    // 输入栏
+    var inputBar = document.createElement('div');
+    inputBar.className = 'lp-input-bar';
+    inputElement = document.createElement('textarea');
+    inputElement.placeholder = '输入你的留学问题…';
+    inputElement.rows = 1;
+    inputElement.style.cssText = 'flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;color:#334155;font-size:.85rem;resize:none;outline:none;font-family:inherit;max-height:80px;line-height:1.5;transition:border-color .2s;';
+    inputElement.onfocus = function() { inputElement.style.borderColor = '#6366f1'; inputElement.style.background = '#fff'; };
+    inputElement.onblur = function() { inputElement.style.borderColor = '#e2e8f0'; inputElement.style.background = '#f8fafc'; };
+    inputElement.oninput = function() { inputElement.style.height = 'auto'; inputElement.style.height = Math.min(inputElement.scrollHeight, 80) + 'px'; };
+    inputElement.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+
+    sendButton = document.createElement('button');
+    sendButton.innerHTML = '➤';
+    sendButton.onclick = handleSend;
+
+    inputBar.appendChild(inputElement);
+    inputBar.appendChild(sendButton);
+    body.appendChild(inputBar);
+    quickBar = quickGrid;
+
+    dialog.appendChild(body);
+    modal.appendChild(dialog);
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
     messages = [];
     isLeadSubmitted = false;
-    messagesContainer.innerHTML = '';
-    appendMessage('ai', modeConfig.welcome);
-    renderQuickReplies(modeConfig.quickReplies);
-    updateSendButton();
+    currentMode = 'consult';
+
+    setTimeout(function() { inputElement.focus(); }, 100);
   }
 
-  function renderQuickReplies(replies) {
-    if (!quickBar) return;
-    quickBar.innerHTML = '';
-    quickBar.style.display = 'flex';
-    replies.forEach(function(item) {
-      var btn = document.createElement('button');
-      btn.textContent = item.text;
-      btn.style.cssText = ['flex-shrink:0','padding:6px 14px','border-radius:20px','border:1px solid rgba(212,175,55,0.3)','background:rgba(212,175,55,0.08)','color:#d4af37','font-size:.75rem','cursor:pointer','white-space:nowrap','transition:all .2s'].join(';');
-      btn.onmouseenter = function(){btn.style.background='rgba(212,175,55,0.2)';btn.style.borderColor='rgba(212,175,55,0.6)'};
-      btn.onmouseleave = function(){btn.style.background='rgba(212,175,55,0.08)';btn.style.borderColor='rgba(212,175,55,0.3)'};
-      btn.onclick = function(){sendMessage(item.value);quickBar.style.display='none'};
-      quickBar.appendChild(btn);
-    });
-  }
-
-  // ========== 测评模式（表单） ==========
-  function setAssessMode() {
-    currentMode = 'assess';
-    var titleEl = document.getElementById('lumipath-chat-title');
-    var subtitleEl = document.getElementById('lumipath-chat-subtitle');
-    if (titleEl) titleEl.textContent = '星途 LumiPath 免费测评';
-    if (subtitleEl) subtitleEl.textContent = '填写信息 · 24小时内出定制方案';
-    // 隐藏聊天UI
-    quickBar.style.display = 'none';
-    var inputBar = quickBar.nextElementSibling;
-    if (inputBar) inputBar.style.display = 'none';
-    messagesContainer.innerHTML = '';
-    messagesContainer.style.display = '';
-    renderAssessForm();
-  }
-
-  function renderAssessForm() {
-    var formWrap = document.createElement('div');
-    formWrap.style.cssText = 'animation:lumipath-fadein .3s ease;padding:4px 0';
-
-    var intro = document.createElement('div');
-    intro.style.cssText = 'background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:14px;margin-bottom:16px';
-    intro.innerHTML = '<div style="color:#d4af37;font-weight:600;font-size:.9rem;margin-bottom:6px">🎯 免费测评 · 定制您的专属方案</div><div style="color:#8a9bb5;font-size:.78rem;line-height:1.6">填写以下信息，我们的专业顾问将在24小时内联系您，提供一对一深度评估和定制方案。全程免费，无隐形消费。</div>';
-    formWrap.appendChild(intro);
-
-    var fields = [
-      { name: 'name', label: '姓名', type: 'text', placeholder: '请填写您的真实姓名', required: true },
-      { name: 'phone', label: '手机号', type: 'tel', placeholder: '方便顾问联系您', required: true },
-      { name: 'wechat', label: '微信号', type: 'text', placeholder: '选填', required: false },
-      { name: 'service', label: '意向服务', type: 'select', required: true, options: ['出国工作','低龄升学','跨境旅游','留学移民','AI转岗就业'], multiple: true },
-      { name: 'country', label: '目标国家', type: 'text', placeholder: '如澳洲、英国、新加坡等', required: false },
-      { name: 'budget', label: '预算范围', type: 'select', required: false, options: ['9.9元测评','299-999咨询','1-5万','5-15万','15万+','未明确'], multiple: false },
-      { name: 'timeline', label: '计划时间', type: 'text', placeholder: '您计划什么时候开始办理？', required: false },
-      { name: 'description', label: '需求描述', type: 'textarea', placeholder: '请简单描述您的需求和背景情况', required: false }
-    ];
-
-    fields.forEach(function(field) {
-      var fieldWrap = document.createElement('div');
-      fieldWrap.style.cssText = 'margin-bottom:14px';
-      var label = document.createElement('label');
-      label.style.cssText = 'display:block;color:#e0e6f0;font-size:.82rem;margin-bottom:6px;font-weight:500';
-      label.textContent = field.label + (field.required ? ' *' : '');
-      fieldWrap.appendChild(label);
-
-      var input;
-      if (field.type === 'select') {
-        if (field.multiple) {
-          // 多选：checkbox组
-          var checkboxGroup = document.createElement('div');
-          checkboxGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px';
-          field.options.forEach(function(opt) {
-            var chip = document.createElement('label');
-            chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:#0d1f35;cursor:pointer;font-size:.78rem;color:#8a9bb5;transition:all .2s';
-            var cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.value = opt;
-            cb.style.cssText = 'accent-color:#d4af37;width:14px;height:14px';
-            cb.onchange = function() {
-              if (cb.checked) {
-                chip.style.borderColor = 'rgba(212,175,55,0.6)';
-                chip.style.background = 'rgba(212,175,55,0.15)';
-                chip.style.color = '#d4af37';
-              } else {
-                chip.style.borderColor = 'rgba(255,255,255,0.15)';
-                chip.style.background = '#0d1f35';
-                chip.style.color = '#8a9bb5';
-              }
-            };
-            chip.appendChild(cb);
-            chip.appendChild(document.createTextNode(opt));
-            checkboxGroup.appendChild(chip);
-          });
-          fieldWrap.appendChild(checkboxGroup);
-          fieldWrap.dataset.fieldName = field.name;
-          fieldWrap.dataset.fieldType = 'multiselect';
-        } else {
-          input = document.createElement('select');
-          input.className = 'lumipath-form-select';
-          input.style.cssText = ['width:100%','background:#0d1f35','border:1px solid rgba(255,255,255,0.1)','border-radius:10px','padding:10px 14px','color:#e0e6f0','font-size:.85rem','outline:none','transition:border-color .2s','appearance:none','background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%238a9bb5\' stroke-width=\'2\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")','background-repeat:no-repeat','background-position:right 12px center','padding-right:36px'].join(';');
-          var emptyOpt = document.createElement('option');
-          emptyOpt.value = '';
-          emptyOpt.textContent = '请选择';
-          emptyOpt.style.color = '#8a9bb5';
-          input.appendChild(emptyOpt);
-          field.options.forEach(function(opt) {
-            var optEl = document.createElement('option');
-            optEl.value = opt;
-            optEl.textContent = opt;
-            optEl.style.color = '#e0e6f0';
-            optEl.style.background = '#0d1f35';
-            input.appendChild(optEl);
-          });
-          fieldWrap.appendChild(input);
-        }
-      } else if (field.type === 'textarea') {
-        input = document.createElement('textarea');
-        input.rows = 3;
-        input.placeholder = field.placeholder;
-        input.className = 'lumipath-form-input';
-        input.style.cssText = ['width:100%','background:#0d1f35','border:1px solid rgba(255,255,255,0.1)','border-radius:10px','padding:10px 14px','color:#e0e6f0','font-size:.85rem','resize:none','outline:none','font-family:inherit','transition:border-color .2s'].join(';');
-        fieldWrap.appendChild(input);
-      } else {
-        input = document.createElement('input');
-        input.type = field.type;
-        input.placeholder = field.placeholder;
-        input.className = 'lumipath-form-input';
-        input.style.cssText = ['width:100%','background:#0d1f35','border:1px solid rgba(255,255,255,0.1)','border-radius:10px','padding:10px 14px','color:#e0e6f0','font-size:.85rem','outline:none','font-family:inherit','transition:border-color .2s'].join(';');
-        fieldWrap.appendChild(input);
-      }
-      if (input) {
-        input.dataset.fieldName = field.name;
-        input.dataset.required = field.required ? 'true' : 'false';
-      }
-      formWrap.appendChild(fieldWrap);
-    });
-
-    // 提交按钮
-    var submitBtn = document.createElement('button');
-    submitBtn.textContent = '提交测评信息';
-    submitBtn.style.cssText = ['width:100%','padding:12px','border:none','border-radius:10px','background:linear-gradient(135deg,#d4af37,#b8941f)','color:#0a1628','font-weight:600','font-size:.9rem','cursor:pointer','margin-top:8px','transition:opacity .2s'].join(';');
-    submitBtn.onclick = function() { submitAssessForm(formWrap); };
-    formWrap.appendChild(submitBtn);
-
-    messagesContainer.appendChild(formWrap);
-  }
-
-  function submitAssessForm(formWrap) {
-    var data = { source: '免费测评' };
-    var requiredMissing = [];
-    
-    formWrap.querySelectorAll('[data-field-name]').forEach(function(el) {
-      var fieldName = el.dataset.fieldName;
-      if (el.dataset.fieldType === 'multiselect') {
-        var selected = [];
-        el.querySelectorAll('input[type=checkbox]:checked').forEach(function(cb) {
-          selected.push(cb.value);
-        });
-        data[fieldName] = selected.join(',');
-      } else if (el.tagName === 'SELECT') {
-        data[fieldName] = el.value;
-      } else {
-        data[fieldName] = el.value.trim();
-      }
-      if (el.dataset.required === 'true' && !data[fieldName]) {
-        requiredMissing.push(fieldName);
-      }
-    });
-
-    if (requiredMissing.length > 0) {
-      showFormError(formWrap, '请填写必填项：' + requiredMissing.map(function(f){return f==='name'?'姓名':f==='phone'?'手机号':'意向服务'}).join('、'));
-      return;
-    }
-
-    // 禁用按钮
-    var submitBtn = formWrap.querySelector('button');
-    submitBtn.textContent = '提交中...';
-    submitBtn.disabled = true;
-    submitBtn.style.opacity = '0.6';
-
-    // 提交到Worker
-    var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/form-submit' : '';
-
-    if (apiUrl) {
-      fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      }).then(function(r) { return r.json(); }).then(function(result) {
-        showFormSuccess(formWrap);
-      }).catch(function(err) {
-        // 本地存储
-        saveLeadLocal(data);
-        showFormSuccess(formWrap);
-      });
-    } else {
-      // 无Worker，本地存储
-      saveLeadLocal(data);
-      setTimeout(function() { showFormSuccess(formWrap); }, 600);
-    }
-  }
-
-  function showFormError(formWrap, msg) {
-    var existing = formWrap.querySelector('.lumipath-form-error');
-    if (existing) existing.remove();
-    var errEl = document.createElement('div');
-    errEl.className = 'lumipath-form-error';
-    errEl.style.cssText = 'color:#f87171;font-size:.78rem;margin-top:8px;text-align:center';
-    errEl.textContent = msg;
-    formWrap.appendChild(errEl);
-  }
-
-  function showFormSuccess(formWrap) {
-    messagesContainer.innerHTML = '';
-    var successWrap = document.createElement('div');
-    successWrap.style.cssText = 'animation:lumipath-fadein .4s ease;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:20px';
-    successWrap.innerHTML = [
-      '<div style="font-size:3rem;margin-bottom:16px">✅</div>',
-      '<div style="color:#d4af37;font-size:1.1rem;font-weight:600;margin-bottom:10px">信息提交成功！</div>',
-      '<div style="color:#8a9bb5;font-size:.85rem;line-height:1.8;max-width:300px">我们的专业顾问将在24小时内联系您，为您提供一对一深度评估和定制方案。</div>',
-      '<div style="color:#8a9bb5;font-size:.78rem;margin-top:16px;padding:10px 16px;background:rgba(212,175,55,0.08);border-radius:8px;border:1px solid rgba(212,175,55,0.15)">期待与您沟通，开启您的星途之旅 🌟</div>'
-    ].join('');
-    messagesContainer.appendChild(successWrap);
-  }
-
-  function saveLeadLocal(data) {
-    try {
-      var leads = JSON.parse(localStorage.getItem('lumipath_leads') || '[]');
-      leads.push({ data: data, timestamp: new Date().toISOString() });
-      localStorage.setItem('lumipath_leads', JSON.stringify(leads));
-    } catch(e) {}
-  }
-
-  // ========== 显示/隐藏 ==========
-  function showModal(mode) {
-    createModal();
-    if (mode === 'assess') {
-      setAssessMode();
-    } else {
-      setConsultMode();
-    }
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    setTimeout(function() {
-      if (mode === 'assess') {
-        var firstInput = messagesContainer.querySelector('input,textarea,select');
-        if (firstInput) firstInput.focus();
-      } else {
-        inputElement.focus();
-      }
-    }, 100);
-  }
-
-  function hideModal() {
-    if (modal) {
-      modal.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-  }
-
-  // ========== 消息显示 ==========
-  function appendMessage(role, content) {
-    var wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;flex-direction:column;animation:lumipath-fadein .3s ease';
-    var bubble = document.createElement('div');
-    var isUser = role === 'user';
-    if (isUser) {
-      wrap.style.alignItems = 'flex-end';
-      bubble.style.cssText = ['max-width:80%','padding:10px 14px','border-radius:14px 14px 4px 14px','background:linear-gradient(135deg,#d4af37,#b8941f)','color:#0a1628','font-size:.85rem','line-height:1.6','word-break:break-word','white-space:pre-wrap'].join(';');
-    } else {
-      wrap.style.alignItems = 'flex-start';
-      bubble.style.cssText = ['max-width:85%','padding:10px 14px','border-radius:14px 14px 14px 4px','background:#1a2a42','color:#e0e6f0','font-size:.85rem','line-height:1.6','word-break:break-word','white-space:pre-wrap'].join(';');
-    }
-    bubble.textContent = content;
-    wrap.appendChild(bubble);
-    messagesContainer.appendChild(wrap);
-    scrollToBottom();
-    messages.push({ role: role, content: content });
-    return bubble;
-  }
-
-  function createStreamingBubble() {
-    var wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;flex-direction:column;animation:lumipath-fadein .3s ease;align-items:flex-start';
-    var bubble = document.createElement('div');
-    bubble.style.cssText = ['max-width:85%','padding:10px 14px','border-radius:14px 14px 14px 4px','background:#1a2a42','color:#e0e6f0','font-size:.85rem','line-height:1.6','word-break:break-word','white-space:pre-wrap'].join(';');
-    var indicator = document.createElement('div');
-    indicator.style.cssText = 'display:flex;gap:4px;padding:4px 0';
-    for (var i = 0; i < 3; i++) {
-      var dot = document.createElement('span');
-      dot.style.cssText = 'width:7px;height:7px;background:#8a9bb5;border-radius:50%;animation:lumipath-bounce 1.4s infinite both;animation-delay:' + (i * 0.16) + 's';
-      indicator.appendChild(dot);
-    }
-    bubble.appendChild(indicator);
-    wrap.appendChild(bubble);
-    messagesContainer.appendChild(wrap);
-    scrollToBottom();
-    var fullText = '';
-    return {
-      bubble: bubble,
-      startStreaming: function() { if (bubble.contains(indicator)) bubble.removeChild(indicator); bubble.textContent = ''; fullText = ''; },
-      append: function(text) { fullText += text; bubble.textContent = fullText.replace(CONFIG.leadMarker, ''); scrollToBottom(); },
-      done: function() {
-        if (bubble.contains(indicator)) bubble.removeChild(indicator);
-        var finalText = fullText.replace(CONFIG.leadMarker, '');
-        messages.push({ role: 'ai', content: finalText });
-        if (fullText.indexOf(CONFIG.leadMarker) !== -1 && !isLeadSubmitted) { submitLead(); }
-      }
-    };
-  }
-
-  // ========== 提交线索（咨询模式） ==========
-  function submitLead() {
-    isLeadSubmitted = true;
-    inputElement.disabled = true;
-    sendButton.disabled = true;
-    sendButton.textContent = '已提交';
-    sendButton.style.opacity = '0.6';
-
-    var statusWrap = document.createElement('div');
-    statusWrap.style.cssText = 'display:flex;justify-content:center;padding:4px 0;animation:lumipath-fadein .3s ease';
-    var statusBubble = document.createElement('div');
-    statusBubble.style.cssText = 'background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:6px 16px;color:#d4af37;font-size:.75rem';
-    statusBubble.textContent = '正在提交您的信息...';
-    statusWrap.appendChild(statusBubble);
-    messagesContainer.appendChild(statusWrap);
-    scrollToBottom();
-
-    var history = messages.map(function(m) { return { role: m.role === 'user' ? 'user' : 'assistant', content: m.content }; });
-    var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/lead' : '';
-
-    if (!apiUrl) {
-      // 本地存储
-      saveLeadLocal({ source: '网站咨询', conversation: history });
-      setTimeout(function() {
-        statusBubble.textContent = '✓ 信息已记录，顾问将在24小时内联系您';
-        statusBubble.style.color = '#4ade80';
-        statusBubble.style.borderColor = 'rgba(74,222,128,0.3)';
-        showInlineForm();
-      }, 800);
-      return;
-    }
-
-    fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ history: history, source: '网站咨询' })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      statusBubble.textContent = '✓ 信息已提交，顾问将在24小时内联系您';
-      statusBubble.style.color = '#4ade80';
-      statusBubble.style.borderColor = 'rgba(74,222,128,0.3)';
-      showInlineForm();
-    }).catch(function(err) {
-      saveLeadLocal({ source: '网站咨询', conversation: history });
-      statusBubble.textContent = '✓ 信息已记录，顾问将在24小时内联系您';
-      statusBubble.style.color = '#4ade80';
-      showInlineForm();
-    });
-  }
-
-  // ========== 咨询模式 fallback：显示内联表单 ==========
-  function showInlineForm() {
-    var formCard = document.createElement('div');
-    formCard.style.cssText = 'animation:lumipath-fadein .3s ease;background:#0d1f35;border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:16px;margin-top:8px';
-
-    var title = document.createElement('div');
-    title.style.cssText = 'color:#d4af37;font-size:.85rem;font-weight:600;margin-bottom:12px';
-    title.textContent = '📋 留下您的联系方式';
-    formCard.appendChild(title);
-
-    var desc = document.createElement('div');
-    desc.style.cssText = 'color:#8a9bb5;font-size:.75rem;margin-bottom:14px;line-height:1.5';
-    desc.textContent = '如果您还没留下联系方式，请填写下方表单，顾问会尽快联系您。';
-    formCard.appendChild(desc);
-
-    var nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.placeholder = '您的姓名';
-    nameInput.style.cssText = 'width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:#e0e6f0;font-size:.82rem;outline:none;margin-bottom:8px;box-sizing:border-box';
-    formCard.appendChild(nameInput);
-
-    var phoneInput = document.createElement('input');
-    phoneInput.type = 'tel';
-    phoneInput.placeholder = '手机号或微信号';
-    phoneInput.style.cssText = 'width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:#e0e6f0;font-size:.82rem;outline:none;margin-bottom:12px;box-sizing:border-box';
-    formCard.appendChild(phoneInput);
-
-    var submitBtn = document.createElement('button');
-    submitBtn.textContent = '提交联系方式';
-    submitBtn.style.cssText = 'width:100%;padding:8px;border:none;border-radius:8px;background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1628;font-weight:600;font-size:.82rem;cursor:pointer';
-    submitBtn.onclick = function() {
-      if (!nameInput.value.trim() || !phoneInput.value.trim()) {
-        submitBtn.textContent = '请填写姓名和联系方式';
-        setTimeout(function(){ submitBtn.textContent = '提交联系方式'; }, 1500);
-        return;
-      }
-      var data = {
-        source: '网站咨询-补充表单',
-        name: nameInput.value.trim(),
-        phone: phoneInput.value.trim()
-      };
-      var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/form-submit' : '';
-      if (apiUrl) {
-        fetch(apiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
-          .then(function(){ showInlineSuccess(formCard); })
-          .catch(function(){ saveLeadLocal(data); showInlineSuccess(formCard); });
-      } else {
-        saveLeadLocal(data);
-        showInlineSuccess(formCard);
-      }
-    };
-    formCard.appendChild(submitBtn);
-    messagesContainer.appendChild(formCard);
-    scrollToBottom();
-  }
-
-  function showInlineSuccess(container) {
-    container.innerHTML = '';
-    var success = document.createElement('div');
-    success.style.cssText = 'text-align:center;padding:8px';
-    success.innerHTML = '<div style="font-size:1.5rem;margin-bottom:8px">✅</div><div style="color:#4ade80;font-size:.85rem;font-weight:600">联系方式已提交！</div><div style="color:#8a9bb5;font-size:.75rem;margin-top:4px">顾问将在24小时内联系您</div>';
-    container.appendChild(success);
-  }
-
-  // ========== Fallback（无API时） ==========
-  function showFallback() {
-    var stream = createStreamingBubble();
-    setTimeout(function() {
-      stream.startStreaming();
-      var text = '感谢您的咨询！我是星途LumiPath的AI顾问。\n\n请直接在下方留下您的问题或需求，也可以填写联系方式，我们的专业顾问会尽快回复您。';
-      var i = 0;
-      var timer = setInterval(function() {
-        if (i < text.length) { stream.append(text[i]); i++; }
-        else {
-          clearInterval(timer);
-          stream.done();
-          // 显示内联表单
-          showInlineForm();
-          isWaiting = false;
-          updateSendButton();
-        }
-      }, 30);
-    }, 600);
-  }
-
-  // ========== 发送 ==========
   function handleSend() {
     if (isLeadSubmitted) return;
     var text = inputElement.value.trim();
@@ -605,12 +324,19 @@
 
   function sendMessage(text) {
     if (isWaiting || isLeadSubmitted) return;
+    if (quickBar) quickBar.style.display = 'none';
     isWaiting = true;
     updateSendButton();
     appendMessage('user', text);
-    if (!CONFIG.apiEndpoint) { showFallback(); return; }
+
+    if (!CONFIG.apiEndpoint) {
+      showFallback(text);
+      return;
+    }
+
     var stream = createStreamingBubble();
     var history = messages.slice(0, -1).map(function(m) { return { role: m.role === 'user' ? 'user' : 'assistant', content: m.content }; });
+
     fetch(CONFIG.apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -627,7 +353,7 @@
           if (!started) { stream.startStreaming(); started = true; }
           stream.append(chunk);
           read();
-        }).catch(function(err) {
+        }).catch(function() {
           if (!started) { stream.startStreaming(); started = true; }
           stream.append('\n\n（连接中断，请稍后重试）');
           stream.done();
@@ -636,10 +362,163 @@
         });
       }
       read();
-    }).catch(function(err) {
-      if (messagesContainer.contains(stream.bubble.parentElement)) { messagesContainer.removeChild(stream.bubble.parentElement); }
-      showFallback();
+    }).catch(function() {
+      if (stream.bubble.parentElement && messagesContainer.contains(stream.bubble.parentElement)) {
+        messagesContainer.removeChild(stream.bubble.parentElement);
+      }
+      showFallback(text);
     });
+  }
+
+  function showFallback(userText) {
+    var stream = createStreamingBubble();
+    setTimeout(function() {
+      stream.startStreaming();
+      var text = '感谢您的咨询！我是星途LumiPath的AI顾问小西。\n\n关于"' + userText + '"，我可以为您提供以下信息：\n\n• 我们提供新加坡PSB/SIM跳板、六国名校直申、奖学金申请等留学服务\n• 同时覆盖出国工作、跨境旅游、AI转岗就业等业务\n• 基础咨询免服务费，靠院校返佣盈利\n\n请问您怎么称呼？方便留个手机号或微信号吗？我们的专业顾问会尽快联系您，提供一对一深度咨询。';
+      var i = 0;
+      var timer = setInterval(function() {
+        if (i < text.length) { stream.append(text[i]); i++; }
+        else {
+          clearInterval(timer);
+          stream.done();
+          showInlineForm();
+          isWaiting = false;
+          updateSendButton();
+        }
+      }, 25);
+    }, 500);
+  }
+
+  function appendMessage(role, content) {
+    var wrap = document.createElement('div');
+    wrap.className = 'lp-msg ' + role;
+    var bubble = document.createElement('div');
+    bubble.className = 'lp-bubble';
+    bubble.textContent = content;
+    wrap.appendChild(bubble);
+    messagesContainer.appendChild(wrap);
+    scrollToBottom();
+    messages.push({ role: role, content: content });
+    return bubble;
+  }
+
+  function createStreamingBubble() {
+    var wrap = document.createElement('div');
+    wrap.className = 'lp-msg ai';
+    var bubble = document.createElement('div');
+    bubble.className = 'lp-bubble';
+    var typing = document.createElement('div');
+    typing.className = 'lp-typing';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    bubble.appendChild(typing);
+    wrap.appendChild(bubble);
+    messagesContainer.appendChild(wrap);
+    scrollToBottom();
+    var fullText = '';
+    return {
+      bubble: bubble,
+      startStreaming: function() { if (bubble.contains(typing)) bubble.removeChild(typing); bubble.textContent = ''; fullText = ''; },
+      append: function(text) { fullText += text; bubble.textContent = fullText.replace(CONFIG.leadMarker, ''); scrollToBottom(); },
+      done: function() {
+        if (bubble.contains(typing)) bubble.removeChild(typing);
+        var finalText = fullText.replace(CONFIG.leadMarker, '');
+        messages.push({ role: 'ai', content: finalText });
+        if (fullText.indexOf(CONFIG.leadMarker) !== -1 && !isLeadSubmitted) { submitLead(); }
+      }
+    };
+  }
+
+  function submitLead() {
+    isLeadSubmitted = true;
+    inputElement.disabled = true;
+    sendButton.disabled = true;
+    sendButton.style.opacity = '0.5';
+
+    var statusWrap = document.createElement('div');
+    statusWrap.className = 'lp-lead-status';
+    var statusBubble = document.createElement('div');
+    statusBubble.className = 'lp-status-bubble';
+    statusBubble.textContent = '正在提交您的信息...';
+    statusWrap.appendChild(statusBubble);
+    messagesContainer.appendChild(statusWrap);
+    scrollToBottom();
+
+    var history = messages.map(function(m) { return { role: m.role === 'user' ? 'user' : 'assistant', content: m.content }; });
+    var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/lead' : '';
+
+    if (!apiUrl) {
+      saveLeadLocal({ source: '网站咨询', conversation: history });
+      setTimeout(function() {
+        statusBubble.textContent = '✓ 信息已记录，顾问将在24小时内联系您';
+        statusBubble.style.color = '#16a34a';
+        statusBubble.style.background = '#f0fdf4';
+        statusBubble.style.borderColor = '#bbf7d0';
+        showInlineForm();
+      }, 800);
+      return;
+    }
+
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history: history, source: '网站咨询' })
+    }).then(function(r) { return r.json(); }).then(function() {
+      statusBubble.textContent = '✓ 信息已提交，顾问将在24小时内联系您';
+      statusBubble.style.color = '#16a34a';
+      statusBubble.style.background = '#f0fdf4';
+      statusBubble.style.borderColor = '#bbf7d0';
+      showInlineForm();
+    }).catch(function() {
+      saveLeadLocal({ source: '网站咨询', conversation: history });
+      statusBubble.textContent = '✓ 信息已记录，顾问将在24小时内联系您';
+      statusBubble.style.color = '#16a34a';
+      showInlineForm();
+    });
+  }
+
+  function showInlineForm() {
+    var formCard = document.createElement('div');
+    formCard.className = 'lp-inline-form';
+    formCard.innerHTML = `
+      <div class="lp-form-title">📋 留下您的联系方式</div>
+      <div class="lp-form-desc">如果您还没留下联系方式，请填写下方表单，顾问会尽快联系您。</div>
+    `;
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = '您的姓名';
+    formCard.appendChild(nameInput);
+
+    var phoneInput = document.createElement('input');
+    phoneInput.type = 'tel';
+    phoneInput.placeholder = '手机号或微信号';
+    formCard.appendChild(phoneInput);
+
+    var submitBtn = document.createElement('button');
+    submitBtn.textContent = '提交联系方式';
+    submitBtn.onclick = function() {
+      if (!nameInput.value.trim() || !phoneInput.value.trim()) {
+        submitBtn.textContent = '请填写姓名和联系方式';
+        setTimeout(function() { submitBtn.textContent = '提交联系方式'; }, 1500);
+        return;
+      }
+      var data = { source: '网站咨询-补充表单', name: nameInput.value.trim(), phone: phoneInput.value.trim() };
+      var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/form-submit' : '';
+      if (apiUrl) {
+        fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+          .then(function() { showInlineSuccess(formCard); })
+          .catch(function() { saveLeadLocal(data); showInlineSuccess(formCard); });
+      } else {
+        saveLeadLocal(data);
+        showInlineSuccess(formCard);
+      }
+    };
+    formCard.appendChild(submitBtn);
+    messagesContainer.appendChild(formCard);
+    scrollToBottom();
+  }
+
+  function showInlineSuccess(container) {
+    container.innerHTML = '<div style="text-align:center;padding:8px"><div style="font-size:1.5rem;margin-bottom:8px">✅</div><div style="color:#16a34a;font-size:.85rem;font-weight:600">联系方式已提交！</div><div style="color:#64748b;font-size:.75rem;margin-top:4px">顾问将在24小时内联系您</div></div>';
   }
 
   function scrollToBottom() {
@@ -648,43 +527,400 @@
 
   function updateSendButton() {
     if (isLeadSubmitted) {
-      sendButton.style.opacity = '0.6';
+      sendButton.style.opacity = '0.5';
       sendButton.style.pointerEvents = 'none';
-      sendButton.textContent = '已提交';
       return;
     }
     sendButton.style.opacity = isWaiting ? '0.5' : '1';
     sendButton.style.pointerEvents = isWaiting ? 'none' : 'auto';
-    sendButton.textContent = isWaiting ? '回复中' : '发送';
     inputElement.disabled = false;
   }
 
-  // ========== 暴露 API ==========
-  window.LumiPathChat = { show: showModal, hide: hideModal, config: CONFIG };
+  // ========== 测评模式 ==========
+  function showAssessModal() {
+    createModal();
+    modal.innerHTML = '';
+    assessStep = 0;
+    assessData = {};
+    renderAssessIntro();
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
 
-  // ========== 支付弹窗 ==========
-  function openPaymentModal() {
-    var modal = document.getElementById('payment-modal');
-    if (modal) {
-      modal.classList.add('show');
-      document.body.style.overflow = 'hidden';
+  function renderAssessIntro() {
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-assess-dialog';
+    dialog.innerHTML = `
+      <div class="lp-assess-header">
+        <div class="lp-assess-icon">🧠</div>
+        <div>
+          <div class="lp-assess-title">AI兴趣天赋测评</div>
+          <div class="lp-assess-sub">智能匹配专业方向 · 留学路径规划 · 个性化推荐</div>
+        </div>
+        <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+      </div>
+      <div class="lp-assess-body">
+        <div class="lp-assess-intro">
+          <div class="lp-intro-icon">🧠</div>
+          <div class="lp-intro-title">发现你的留学方向</div>
+          <div class="lp-intro-desc">只需3步，AI将基于你的兴趣、学业背景和目标国家，为你生成个性化的专业方向推荐与留学路径建议</div>
+        </div>
+        <div class="lp-step-list">
+          <div class="lp-step-item">
+            <div class="lp-step-num">1</div>
+            <div class="lp-step-content">
+              <div class="lp-step-label">✨ Step 1</div>
+              <div class="lp-step-title">兴趣方向</div>
+              <div class="lp-step-q">你对哪些领域感兴趣？</div>
+            </div>
+          </div>
+          <div class="lp-step-item">
+            <div class="lp-step-num">2</div>
+            <div class="lp-step-content">
+              <div class="lp-step-label">📖 Step 2</div>
+              <div class="lp-step-title">学业背景</div>
+              <div class="lp-step-q">你目前的教育情况？</div>
+            </div>
+          </div>
+          <div class="lp-step-item">
+            <div class="lp-step-num">3</div>
+            <div class="lp-step-content">
+              <div class="lp-step-label">🌐 Step 3</div>
+              <div class="lp-step-title">目标国家</div>
+              <div class="lp-step-q">你倾向哪些留学目的地？</div>
+            </div>
+          </div>
+        </div>
+        <button class="lp-assess-btn" id="lp-start-assess">开始测评 →</button>
+      </div>
+    `;
+    modal.innerHTML = '';
+    modal.appendChild(dialog);
+    document.getElementById('lp-start-assess').onclick = function() { assessStep = 1; renderAssessStep1(); };
+  }
+
+  function renderAssessStep1() {
+    var interests = ['商科/金融', '计算机/IT', '工程/制造', '艺术/设计', '传媒/新闻', '教育/心理', '医学/护理', '法律', '科学/研究', '管理/创业'];
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-assess-dialog';
+    dialog.innerHTML = `
+      <div class="lp-assess-header">
+        <div class="lp-assess-icon">🧠</div>
+        <div>
+          <div class="lp-assess-title">AI兴趣天赋测评</div>
+          <div class="lp-assess-sub">Step 1 / 3 · 兴趣方向</div>
+        </div>
+        <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+      </div>
+      <div class="lp-assess-body lp-assess-step">
+        <div class="lp-step-header">
+          <button class="lp-back-btn" onclick="window.LumiPathChat._backIntro()">← 返回</button>
+          <span class="lp-step-indicator">Step 1 / 3</span>
+        </div>
+        <div class="lp-step-title">兴趣方向</div>
+        <div class="lp-step-question">你对哪些领域感兴趣？（可多选）</div>
+        <div class="lp-options" id="lp-interest-options"></div>
+        <button class="lp-next-btn" id="lp-next-1" disabled>下一步 →</button>
+      </div>
+    `;
+    modal.innerHTML = '';
+    modal.appendChild(dialog);
+    var optsContainer = document.getElementById('lp-interest-options');
+    var selected = [];
+    interests.forEach(function(opt) {
+      var chip = document.createElement('div');
+      chip.className = 'lp-option-chip';
+      chip.textContent = opt;
+      chip.onclick = function() {
+        var idx = selected.indexOf(opt);
+        if (idx > -1) { selected.splice(idx, 1); chip.classList.remove('selected'); }
+        else { selected.push(opt); chip.classList.add('selected'); }
+        document.getElementById('lp-next-1').disabled = selected.length === 0;
+      };
+      optsContainer.appendChild(chip);
+    });
+    document.getElementById('lp-next-1').onclick = function() {
+      assessData.interests = selected;
+      assessStep = 2;
+      renderAssessStep2();
+    };
+  }
+
+  function renderAssessStep2() {
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-assess-dialog';
+    dialog.innerHTML = `
+      <div class="lp-assess-header">
+        <div class="lp-assess-icon">🧠</div>
+        <div>
+          <div class="lp-assess-title">AI兴趣天赋测评</div>
+          <div class="lp-assess-sub">Step 2 / 3 · 学业背景</div>
+        </div>
+        <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+      </div>
+      <div class="lp-assess-body lp-assess-step">
+        <div class="lp-step-header">
+          <button class="lp-back-btn" onclick="window.LumiPathChat._backStep1()">← 返回</button>
+          <span class="lp-step-indicator">Step 2 / 3</span>
+        </div>
+        <div class="lp-step-title">学业背景</div>
+        <div class="lp-step-question">你目前的教育情况？</div>
+        <div class="lp-options" id="lp-edu-options"></div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:.82rem;color:#475569;margin-bottom:6px">高中成绩（均分）</div>
+          <input type="text" class="lp-text-input" id="lp-grade-input" placeholder="如 75、80、未参加高考等">
+        </div>
+        <button class="lp-next-btn" id="lp-next-2" disabled>下一步 →</button>
+      </div>
+    `;
+    modal.innerHTML = '';
+    modal.appendChild(dialog);
+    var eduLevels = ['初中', '高中在读', '高中毕业', '大学在读', '大学毕业', '已工作'];
+    var optsContainer = document.getElementById('lp-edu-options');
+    var selectedEdu = null;
+    eduLevels.forEach(function(opt) {
+      var chip = document.createElement('div');
+      chip.className = 'lp-option-chip';
+      chip.textContent = opt;
+      chip.onclick = function() {
+        optsContainer.querySelectorAll('.lp-option-chip').forEach(function(c) { c.classList.remove('selected'); });
+        chip.classList.add('selected');
+        selectedEdu = opt;
+        checkStep2Ready();
+      };
+      optsContainer.appendChild(chip);
+    });
+    var gradeInput = document.getElementById('lp-grade-input');
+    gradeInput.oninput = checkStep2Ready;
+    function checkStep2Ready() {
+      document.getElementById('lp-next-2').disabled = !selectedEdu;
+    }
+    document.getElementById('lp-next-2').onclick = function() {
+      assessData.education = selectedEdu;
+      assessData.grade = gradeInput.value.trim();
+      assessStep = 3;
+      renderAssessStep3();
+    };
+  }
+
+  function renderAssessStep3() {
+    var countries = ['🇸🇬 新加坡', '🇬🇧 英国', '🇦🇺 澳大利亚', '🇲🇾 马来西亚', '🇺🇸 美国', '🇷🇺 俄罗斯', '🇨🇦 加拿大', '🇭🇰 中国香港', '暂未确定'];
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-assess-dialog';
+    dialog.innerHTML = `
+      <div class="lp-assess-header">
+        <div class="lp-assess-icon">🧠</div>
+        <div>
+          <div class="lp-assess-title">AI兴趣天赋测评</div>
+          <div class="lp-assess-sub">Step 3 / 3 · 目标国家</div>
+        </div>
+        <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+      </div>
+      <div class="lp-assess-body lp-assess-step">
+        <div class="lp-step-header">
+          <button class="lp-back-btn" onclick="window.LumiPathChat._backStep2()">← 返回</button>
+          <span class="lp-step-indicator">Step 3 / 3</span>
+        </div>
+        <div class="lp-step-title">目标国家</div>
+        <div class="lp-step-question">你倾向哪些留学目的地？（可多选）</div>
+        <div class="lp-options" id="lp-country-options"></div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:.82rem;color:#475569;margin-bottom:6px">您的称呼</div>
+          <input type="text" class="lp-text-input" id="lp-name-input" placeholder="如：王同学">
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:.82rem;color:#475569;margin-bottom:6px">联系方式（手机号或微信）</div>
+          <input type="text" class="lp-text-input" id="lp-phone-input" placeholder="方便顾问联系您">
+        </div>
+        <button class="lp-next-btn" id="lp-submit-assess" disabled>提交测评 →</button>
+      </div>
+    `;
+    modal.innerHTML = '';
+    modal.appendChild(dialog);
+    var optsContainer = document.getElementById('lp-country-options');
+    var selectedCountries = [];
+    countries.forEach(function(opt) {
+      var chip = document.createElement('div');
+      chip.className = 'lp-option-chip';
+      chip.textContent = opt;
+      chip.onclick = function() {
+        var idx = selectedCountries.indexOf(opt);
+        if (idx > -1) { selectedCountries.splice(idx, 1); chip.classList.remove('selected'); }
+        else { selectedCountries.push(opt); chip.classList.add('selected'); }
+        checkStep3Ready();
+      };
+      optsContainer.appendChild(chip);
+    });
+    var nameInput = document.getElementById('lp-name-input');
+    var phoneInput = document.getElementById('lp-phone-input');
+    nameInput.oninput = checkStep3Ready;
+    phoneInput.oninput = checkStep3Ready;
+    function checkStep3Ready() {
+      document.getElementById('lp-submit-assess').disabled = selectedCountries.length === 0 || !nameInput.value.trim() || !phoneInput.value.trim();
+    }
+    document.getElementById('lp-submit-assess').onclick = function() {
+      assessData.countries = selectedCountries;
+      assessData.name = nameInput.value.trim();
+      assessData.phone = phoneInput.value.trim();
+      submitAssess();
+    };
+  }
+
+  function submitAssess() {
+    var data = {
+      source: '免费测评',
+      name: assessData.name,
+      phone: assessData.phone,
+      interests: (assessData.interests || []).join(','),
+      education: assessData.education || '',
+      grade: assessData.grade || '',
+      countries: (assessData.countries || []).join(',')
+    };
+
+    // 提交到Worker或本地存储
+    var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/form-submit' : '';
+    if (apiUrl) {
+      fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        .then(function() { renderAssessSuccess(); })
+        .catch(function() { saveLeadLocal(data); renderAssessSuccess(); });
+    } else {
+      saveLeadLocal(data);
+      renderAssessSuccess();
     }
   }
 
-  // ========== 自动绑定 ==========
+  function renderAssessSuccess() {
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-assess-dialog';
+    dialog.innerHTML = `
+      <div class="lp-assess-header">
+        <div class="lp-assess-icon">🧠</div>
+        <div>
+          <div class="lp-assess-title">AI兴趣天赋测评</div>
+          <div class="lp-assess-sub">测评完成</div>
+        </div>
+        <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+      </div>
+      <div class="lp-assess-body">
+        <div class="lp-assess-success">
+          <div class="lp-success-icon">🎉</div>
+          <div class="lp-success-title">测评信息提交成功！</div>
+          <div class="lp-success-desc">感谢${assessData.name || '您'}的参与！我们的专业顾问将根据您提交的信息，在24小时内为您生成个性化的专业方向推荐与留学路径建议，并通过电话或微信联系您。</div>
+          <div class="lp-success-tip">期待与您沟通，开启您的星途之旅 🌟</div>
+        </div>
+      </div>
+    `;
+    modal.innerHTML = '';
+    modal.appendChild(dialog);
+  }
+
+  // ========== 支付弹窗 ==========
+  function showPayModal() {
+    createModal();
+    modal.innerHTML = '';
+    var qrUrl = getPaymentQrUrl();
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-pay-dialog';
+    dialog.innerHTML = `
+      <div class="lp-pay-header">
+        <div class="lp-pay-title">💙 支付宝扫码支付</div>
+        <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+      </div>
+      <div class="lp-pay-body">
+        <div class="lp-pay-tip">请使用支付宝扫描下方二维码</div>
+        <div class="lp-qr-wrap">
+          <div class="lp-qr-recommend">推荐使用支付宝</div>
+          <div class="lp-qr-notice">支持花呗 | 信用卡 | 分期付款</div>
+          <img class="lp-qr-img" src="${qrUrl}" alt="支付宝收款码" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div style="display:none;align-items:center;justify-content:center;width:200px;height:200px;margin:0 auto;background:#f1f5f9;border-radius:8px;color:#94a3b8;font-size:.8rem">收款码加载中</div>
+          <div class="lp-qr-brand">星途LumiPath</div>
+          <div class="lp-qr-alipay-logo">支付宝</div>
+        </div>
+        <div class="lp-pay-instructions">打开支付宝 → 扫一扫 → 对准上方二维码</div>
+        <div class="lp-pay-notice">支持花呗、信用卡、分期付款<br>支付完成后，顾问将在24小时内与您联系</div>
+        <button class="lp-pay-btn" onclick="window.open('alipays://platformapi/startapp?saId=10000007','_blank')">打开支付宝付款</button>
+      </div>
+    `;
+    modal.innerHTML = '';
+    modal.appendChild(dialog);
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // ========== 隐藏 ==========
+  function hideModal() {
+    if (modal) {
+      modal.classList.remove('show');
+      modal.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+  }
+
+  function saveLeadLocal(data) {
+    try {
+      var leads = JSON.parse(localStorage.getItem('lumipath_leads') || '[]');
+      leads.push({ data: data, timestamp: new Date().toISOString() });
+      localStorage.setItem('lumipath_leads', JSON.stringify(leads));
+    } catch(e) {}
+  }
+
+  // ========== 暴露 API ==========
+  window.LumiPathChat = {
+    show: function(mode) {
+      if (mode === 'assess') showAssessModal();
+      else if (mode === 'pay') showPayModal();
+      else showConsultModal();
+    },
+    hide: hideModal,
+    config: CONFIG,
+    _backIntro: renderAssessIntro,
+    _backStep1: renderAssessStep1,
+    _backStep2: renderAssessStep2
+  };
+
+  // ========== 自动绑定按钮 ==========
   function init() {
-    document.querySelectorAll('[data-action="consult"], [data-action="assess"], [data-action="pay"]').forEach(function(btn) {
+    // 移除旧的 payment-modal 阻止其显示
+    var oldPayModal = document.getElementById('payment-modal');
+    if (oldPayModal) {
+      // 拦截旧支付弹窗的关闭按钮
+      var oldClose = oldPayModal.querySelector('.modal-close');
+      if (oldClose) {
+        oldClose.onclick = function() { oldPayModal.classList.remove('show'); };
+      }
+    }
+
+    document.querySelectorAll('[data-action]').forEach(function(btn) {
+      // 清除旧绑定
       btn.onclick = null;
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        var action = btn.getAttribute('data-action');
-        if (action === 'pay') {
-          openPaymentModal();
-        } else {
-          showModal(action === 'assess' ? 'assess' : 'consult');
-        }
-      });
+      var action = btn.getAttribute('data-action');
+      if (action === 'consult' || action === 'assess' || action === 'pay') {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (action === 'pay') {
+            showPayModal();
+          } else if (action === 'assess') {
+            showAssessModal();
+          } else {
+            showConsultModal();
+          }
+        });
+      }
     });
+
+    // 拦截旧 payment-modal 的 show 方法
+    if (oldPayModal) {
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          if (m.attributeName === 'class' && oldPayModal.classList.contains('show')) {
+            oldPayModal.classList.remove('show');
+            showPayModal();
+          }
+        });
+      });
+      observer.observe(oldPayModal, { attributes: true });
+    }
   }
 
   if (document.readyState === 'loading') {
