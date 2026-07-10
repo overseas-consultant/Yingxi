@@ -222,7 +222,7 @@
 
     // ===== Consultation & Assessment button handler =====
     // ALL consult/assess actions open OpenHex real-time chat
-    var OPENHEX_URL = 'https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd';
+    var OPENHEX_URL = 'https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6';
 
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
@@ -234,17 +234,15 @@
           var iframe = modal.querySelector('#openhex-chat-frame');
           var fallback = modal.querySelector('#chat-fallback');
           if (iframe) {
-            var currentSrc = iframe.getAttribute('src') || '';
-            if (currentSrc === 'about:blank' || currentSrc === '' || !currentSrc.startsWith('http')) {
-              iframe.src = OPENHEX_URL;
-            }
-            // Check if iframe loaded successfully after 3 seconds
+            // Reset loaded state and always load fresh
+            delete iframe.dataset.loaded;
+            iframe.src = OPENHEX_URL;
+            // Show fallback if iframe doesn't load within 5 seconds
             setTimeout(function() {
-              if (!iframe.dataset.loaded && !iframe.contentWindow) {
+              if (!iframe.dataset.loaded) {
                 if (fallback) fallback.style.display = '';
-                iframe.style.display = 'none';
               }
-            }, 3000);
+            }, 5000);
           }
         }
       });
