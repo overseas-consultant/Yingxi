@@ -221,13 +221,11 @@
     });
 
     // ===== Consultation & Assessment button handler =====
-    // Open the chat widget (bottom-right floating panel)
+    // Open chat.html in a new tab
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        if (window.ChatWidget && window.ChatWidget.open) {
-          window.ChatWidget.open();
-        }
+        window.open('https://overseas-consultant.github.io/Yingxi/chat.html', '_blank');
       });
     });
   }
