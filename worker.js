@@ -1,128 +1,363 @@
 /**
- * 星途 LumiPath · AI跨境规划顾问 · Cloudflare Worker
+ * 星途 LumiPath · AI跨境规划顾问 · Cloudflare Worker v2
+ * 
+ * 功能：
+ * 1. POST /        — 流式 AI 对话（引导收集客户信息）
+ * 2. POST /lead    — 从对话历史中提取结构化线索数据
  * 
  * 部署步骤：
- * 1. 注册 Cloudflare 账号（免费）：https://dash.cloudflare.com/sign-up
- * 2. 进入 Workers & Pages → Create → Create Worker
- * 3. 把这个文件的内容粘贴进去 → Deploy
- * 4. 在 Settings → Variables 中添加：
- *    - DEEPSEEK_API_KEY = 你的 DeepSeek API Key（从 https://platform.deepseek.com 获取）
- *    （不设也能用，会降级到 Cloudflare 免费 AI 模型）
- * 5. 复制 Worker URL（如 https://lumipath-chat.xxx.workers.dev）
- * 6. 在 chat-widget.js 中把 apiEndpoint 设为这个 URL
- * 
- * DeepSeek API：注册即送 500 万 token 免费额度，之后 ¥1/百万 token，极便宜
+ * 1. 注册 Cloudflare（免费）：https://dash.cloudflare.com/sign-up
+ * 2. Workers & Pages → Create → Create Worker
+ * 3. 粘贴此代码 → Deploy
+ * 4. Settings → Variables 添加：
+ *    DEEPSEEK_API_KEY = 你的 DeepSeek API Key（https://platform.deepseek.com 注册，送500万token）
+ *    FEISHU_WEBHOOK_URL = 飞书自定义机器人 webhook URL（可选，用于接收新线索通知）
+ * 5. Settings → KV Namespace Bindings 添加：
+ *    LEADS = 创建一个 KV namespace（用于存储线索数据）
+ * 6. 把 Worker URL 填到 chat-widget.js 的 apiEndpoint
  */
 
-// ========== 系统提示词（星途业务知识库）==========
-var SYSTEM_PROMPT = `你是「星途 LumiPath」的AI跨境规划顾问。星途是一家AI赋能的跨境全链路服务机构，由盈西创立。
+// ========== 系统提示词 ==========
+var SYSTEM_PROMPT_CONSULT = `你是「星途 LumiPath」的AI跨境规划顾问。星途是一家AI赋能的跨境全链路服务机构。
 
-## 你的职责
-- 在线咨询：解答客户关于出国工作、留学、旅游、移民、AI就业的问题
-- 客户筛选：通过对话了解客户背景、需求、预算，进行初步分层
-- 方案推荐：根据客户情况推荐合适的服务和路径
-- 引导转化：引导感兴趣的客户添加顾问微信/飞书进行深度咨询
+## 你的核心任务
+1. 专业解答客户关于出国工作、留学、旅游、移民、AI就业的问题
+2. 在对话中自然地引导客户提供个人信息，收集销售线索
+3. 当收集到足够信息后，告知客户顾问会联系他
 
 ## 五大业务板块
 
 ### 1. 留学（主力业务）
 - 低龄升学：中外联合办学/非应试路径，冲全球前300名校
 - 核心卖点：新加坡PSB学院跳板→直通英澳名校（QS前300），如悉尼科技大学（QS排名前100）
-- 适合成绩不理想但想上名校的学生，通过新加坡1-2年过渡后转入英澳大学
+- 适合成绩不理想但想上名校的学生
 - 综合留学：中高端家庭，定制升学规划
 
-### 2. 跨境旅游（同时接）
+### 2. 跨境旅游
 - 双向：国人出境游 + 海外游客来华
 - 避免跟团强制消费，提供自由行规划
 
-### 3. AI转岗就业（同时接）
+### 3. AI转岗就业
 - 体系化课程 + 内推 + 实战项目
 - 帮助快速拿到AI相关岗位offer
 
-### 4. 出国工作（后续叠加）
+### 4. 出国工作
 - 澳洲/英国/欧洲/马来西亚合法工作签
 - 43岁以内，8年+社保
-- 合法合规，非黑中介
 
-### 5. 留学移民（后续叠加）
+### 5. 留学移民
 - 中高端家庭，合法合规拿签证/绿卡
 
 ## 定价模型
 - 9.9元：AI测评（引流）
 - 299-999元：定制咨询
 - 1万-15万+：全流程代办
-- 199元/年：基础会员
-- 1999元/年：高级会员
+- 199元/年：基础会员 / 1999元/年：高级会员
+
+## 线索收集策略（重要！）
+你需要在对话中自然地收集以下信息：
+1. **怎么称呼您**（姓名）
+2. **手机号或微信号**（联系方式——这是最重要的！）
+3. **想了解哪个服务**（出国工作/留学/旅游/移民/AI就业）
+4. **目标国家**（如澳洲/英国/新加坡等）
+5. **预算范围**（可以问"您大概的预算范围是多少？"）
+6. **时间安排**（"您计划什么时候开始办理？"）
+
+### 收集技巧
+- 不要一次问太多，每次只问1-2个问题
+- 先解答客户的问题，再自然过渡到收集信息
+- 例如：客户问完工作签条件后，你可以说"这些条件您基本都符合呢！方便留个联系方式吗？我们的顾问可以帮您做详细评估"
+- 客户如果不愿意给信息，不要强求，继续提供价值
+- 当客户给了手机号或微信号后，追问预算和时间安排
+
+### 何时输出完成标记
+当你收集到以下信息中的至少3项时（必须包含联系方式）：
+- 姓名 + 联系方式 + 服务意向
+
+在回复末尾加上标记：[LEAD_COMPLETE]
+然后在标记前面说："太好了！我已经把您的信息记录下来了，我们的专业顾问会在24小时内联系您，为您做详细的方案评估。期待与您沟通！"
 
 ## 回复规则
-- 语气：专业但亲切，像一位靠谱的朋友在给建议，不要客服腔
-- 先理解需求：问清客户的基本情况（目标国家、预算、时间线、个人背景）
-- 再给建议：基于客户情况给出初步方向，不要一上来就推销
-- 主动引导：对话自然推进后，引导客户添加顾问微信获取定制方案
-- 诚实：不确定的信息不要编造，告诉客户"具体情况需要顾问评估后给出准确方案"
+- 语气：专业但亲切，像一位靠谱的朋友在给建议
 - 简洁：回复控制在3-5句话，不要长篇大论
+- 诚实：不确定的信息不要编造
 - 中文回复`;
 
-// ========== CORS 头 ==========
+var SYSTEM_PROMPT_ASSESS = `你是「星途 LumiPath」的AI测评顾问。星途是一家AI赋能的跨境全链路服务机构。
+
+## 你的核心任务
+通过互动对话为客户提供免费测评，了解客户背景和需求，推荐最合适的跨境发展路径，同时收集客户联系方式作为销售线索。
+
+## 测评流程
+1. 先问客户的目标（出国工作/留学/移民/AI就业）
+2. 根据目标问2-3个背景问题：
+   - 工作：年龄、工作经验、学历、当前行业
+   - 留学：孩子年龄、当前年级、成绩情况、目标国家
+   - 移民：家庭情况、资产情况、目标国家
+   - AI就业：当前职业、编程基础、转岗原因
+3. 基于回答给出初步评估和建议
+4. 引导客户留联系方式获取详细报告
+
+## 五大业务板块
+1. 留学：低龄升学（PSB跳板→英澳名校）/ 综合留学
+2. 跨境旅游：双向出境+来华
+3. AI转岗就业：课程+内推+实战
+4. 出国工作：澳洲/英国/欧洲/马来西亚合法工作签（43岁以内8年+社保）
+5. 留学移民：中高端家庭签证/绿卡
+
+## 定价
+9.9元测评 → 299-999咨询 → 1-15万全流程代办
+
+## 线索收集
+在测评过程中自然收集：
+1. 怎么称呼您（姓名）
+2. 手机号或微信号（最重要！）
+3. 测评方向（工作/留学/移民/AI就业）
+4. 目标国家
+5. 预算范围
+6. 时间安排
+
+### 收集技巧
+- 测评完成后说："根据您的情况，我建议可以考虑XXX路径。如果您想获取更详细的定制方案，方便留个手机号或微信吗？我们的顾问会为您做一对一深度评估"
+- 客户给了联系方式后，问预算和时间安排
+- 当收集到姓名+联系方式+测评方向后，在回复末尾加 [LEAD_COMPLETE]
+- 标记前说："好的！您的测评信息已记录，专业顾问会在24小时内联系您，提供详细的定制方案。谢谢您的信任！"
+
+## 回复规则
+- 语气：专业、鼓励、有洞察
+- 每次只问1-2个问题，不要像填表
+- 给出有价值的初步评估，让客户觉得测评有用
+- 中文回复，简洁3-5句`;
+
+// ========== CORS ==========
 var corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type'
 };
 
-// ========== 主处理函数 ==========
+// ========== 主处理 ==========
 export default {
   async fetch(request, env) {
-    // 处理 CORS 预检
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
-    if (request.method !== 'POST') {
-      return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
+    var url = new URL(request.url);
+
+    // 线索提取接口
+    if (url.pathname === '/lead' && request.method === 'POST') {
+      return handleLead(request, env);
     }
 
-    try {
-      var body = await request.json();
-      var message = body.message || '';
-      var history = body.history || [];
-
-      // 构建消息列表
-      var apiMessages = [{ role: 'system', content: SYSTEM_PROMPT }];
-      for (var i = 0; i < history.length; i++) {
-        apiMessages.push({
-          role: history[i].role === 'user' ? 'user' : 'assistant',
-          content: history[i].content
-        });
-      }
-      apiMessages.push({ role: 'user', content: message });
-
-      // 优先使用 DeepSeek API（质量更好）
-      if (env.DEEPSEEK_API_KEY) {
-        return await callDeepSeek(apiMessages, env.DEEPSEEK_API_KEY);
-      }
-
-      // 降级到 Cloudflare Workers AI（免费）
-      if (env.AI) {
-        return await callCloudflareAI(apiMessages, env);
-      }
-
-      // 都没有配置
-      return new Response(
-        'AI服务未配置。请在Cloudflare Worker设置中添加DEEPSEEK_API_KEY变量。',
-        { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', ...corsHeaders } }
-      );
-
-    } catch (err) {
-      return new Response('服务器错误: ' + err.message, {
-        status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', ...corsHeaders }
-      });
+    // 健康检查
+    if (url.pathname === '/health') {
+      return new Response('OK', { headers: corsHeaders });
     }
+
+    // 聊天接口
+    if (request.method === 'POST') {
+      return handleChat(request, env);
+    }
+
+    return new Response('LumiPath Chat Worker v2', { headers: corsHeaders });
   }
 };
 
-// ========== DeepSeek API（推荐，质量最好） ==========
+// ========== 聊天处理 ==========
+async function handleChat(request, env) {
+  try {
+    var body = await request.json();
+    var message = body.message || '';
+    var history = body.history || [];
+    var mode = body.mode || 'consult';
+
+    var systemPrompt = mode === 'assess' ? SYSTEM_PROMPT_ASSESS : SYSTEM_PROMPT_CONSULT;
+
+    var apiMessages = [{ role: 'system', content: systemPrompt }];
+    for (var i = 0; i < history.length; i++) {
+      apiMessages.push({
+        role: history[i].role === 'user' ? 'user' : 'assistant',
+        content: history[i].content
+      });
+    }
+    apiMessages.push({ role: 'user', content: message });
+
+    if (env.DEEPSEEK_API_KEY) {
+      return await callDeepSeek(apiMessages, env.DEEPSEEK_API_KEY);
+    }
+    if (env.AI) {
+      return await callCloudflareAI(apiMessages, env);
+    }
+
+    return new Response('AI服务未配置。请在Worker设置中添加DEEPSEEK_API_KEY。', {
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', ...corsHeaders }
+    });
+  } catch (err) {
+    return new Response('错误: ' + err.message, {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', ...corsHeaders }
+    });
+  }
+}
+
+// ========== 线索提取处理 ==========
+async function handleLead(request, env) {
+  try {
+    var body = await request.json();
+    var history = body.history || [];
+    var source = body.source || '网站咨询';
+
+    // 用 AI 从对话中提取结构化信息
+    var extractPrompt = '从以下对话中提取客户信息，返回JSON格式（只返回JSON，不要其他文字）。\n';
+    extractPrompt += '字段：name(姓名), phone(手机号), wechat(微信号), service(意向服务，多个用逗号分隔), country(目标国家), budget(预算范围), timeline(时间安排), description(需求描述), tags(客户画像标签)\n';
+    extractPrompt += '无法提取的字段留空字符串。\n\n对话内容：\n';
+
+    for (var i = 0; i < history.length; i++) {
+      extractPrompt += (history[i].role === 'user' ? '客户' : '顾问') + ': ' + history[i].content + '\n';
+    }
+
+    var leadData = null;
+
+    // 尝试用 AI 提取
+    if (env.DEEPSEEK_API_KEY) {
+      try {
+        var resp = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + env.DEEPSEEK_API_KEY
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: '你是一个信息提取助手。从对话中提取结构化数据，只返回JSON，不要其他文字。' },
+              { role: 'user', content: extractPrompt }
+            ],
+            temperature: 0.1,
+            max_tokens: 512
+          })
+        });
+
+        if (resp.ok) {
+          var result = await resp.json();
+          var content = result.choices[0].message.content.trim();
+          // 去除可能的 markdown 代码块标记
+          content = content.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+          leadData = JSON.parse(content);
+        }
+      } catch (e) {
+        // AI 提取失败，继续用原始对话
+      }
+    }
+
+    // 如果 AI 提取失败，用简单方式
+    if (!leadData) {
+      leadData = {
+        name: '',
+        phone: '',
+        wechat: '',
+        service: '',
+        country: '',
+        budget: '',
+        timeline: '',
+        description: history.map(function(m) { return (m.role === 'user' ? '客户' : '顾问') + ': ' + m.content; }).join('\n'),
+        tags: ''
+      };
+    }
+
+    // 构建线索对象
+    var lead = {
+      id: 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
+      timestamp: new Date().toISOString(),
+      source: source,
+      name: leadData.name || '',
+      phone: leadData.phone || '',
+      wechat: leadData.wechat || '',
+      service: leadData.service || '',
+      country: leadData.country || '',
+      budget: leadData.budget || '',
+      timeline: leadData.timeline || '',
+      description: leadData.description || '',
+      tags: leadData.tags || '',
+      conversation: history.map(function(m) { return (m.role === 'user' ? '客户' : '顾问') + ': ' + m.content; }).join('\n')
+    };
+
+    // 存储到 KV
+    if (env.LEADS) {
+      await env.LEADS.put(lead.id, JSON.stringify(lead));
+      // 同时维护一个索引
+      var indexRaw = await env.LEADS.get('_index');
+      var index = indexRaw ? JSON.parse(indexRaw) : [];
+      index.push({ id: lead.id, timestamp: lead.timestamp, name: lead.name, phone: lead.phone, source: lead.source });
+      await env.LEADS.put('_index', JSON.stringify(index));
+    }
+
+    // 发送飞书通知
+    if (env.FEISHU_WEBHOOK_URL) {
+      await sendFeishuNotification(env.FEISHU_WEBHOOK_URL, lead);
+    }
+
+    return new Response(JSON.stringify({ ok: true, lead: lead }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ ok: false, error: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+}
+
+// ========== 飞书通知 ==========
+async function sendFeishuNotification(webhookUrl, lead) {
+  var cards = [
+    { '类型': '姓名', '值': lead.name || '未提供' },
+    { '类型': '联系方式', '值': lead.phone || '未提供' },
+    { '类型': '微信号', '值': lead.wechat || '未提供' },
+    { '类型': '意向服务', '值': lead.service || '未提供' },
+    { '类型': '目标国家', '值': lead.country || '未提供' },
+    { '类型': '预算范围', '值': lead.budget || '未提供' },
+    { '类型': '时间安排', '值': lead.timeline || '未提供' },
+    { '类型': '来源', '值': lead.source },
+    { '类型': '客户标签', '值': lead.tags || '未提供' }
+  ];
+
+  var content = cards.map(function(c) {
+    return '**' + c['类型'] + ':** ' + c['值'];
+  }).join('\n');
+
+  var message = {
+    msg_type: 'interactive',
+    card: {
+      header: {
+        title: { tag: 'plain_text', content: '🌟 新客户线索 - ' + (lead.name || '未署名') },
+        template: 'gold'
+      },
+      elements: [
+        { tag: 'div', text: { tag: 'lark_md', content: content } },
+        { tag: 'hr' },
+        { tag: 'div', text: { tag: 'lark_md', content: '**需求描述:**\n' + (lead.description || '见对话记录') } },
+        { tag: 'hr' },
+        { tag: 'div', text: { tag: 'lark_md', content: '**对话记录:**\n' + lead.conversation.substring(0, 1000) } },
+        { tag: 'note', elements: [{ tag: 'plain_text', content: '⏰ ' + new Date(lead.timestamp).toLocaleString('zh-CN') }] }
+      ]
+    }
+  };
+
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(message)
+    });
+  } catch (e) {
+    // 通知失败不影响主流程
+  }
+}
+
+// ========== DeepSeek API ==========
 async function callDeepSeek(apiMessages, apiKey) {
   var response = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
@@ -147,7 +382,6 @@ async function callDeepSeek(apiMessages, apiKey) {
     });
   }
 
-  // 转换 SSE 流为纯文本流
   var { readable, writable } = new TransformStream();
   var writer = writable.getWriter();
   var encoder = new TextEncoder();
@@ -171,7 +405,7 @@ async function callDeepSeek(apiMessages, apiKey) {
             if (content) {
               await writer.write(encoder.encode(content));
             }
-          } catch (e) { /* skip parse errors */ }
+          } catch (e) { }
         }
       }
     }
@@ -183,14 +417,12 @@ async function callDeepSeek(apiMessages, apiKey) {
   });
 }
 
-// ========== Cloudflare Workers AI（免费降级方案） ==========
+// ========== Cloudflare Workers AI（免费降级） ==========
 async function callCloudflareAI(apiMessages, env) {
   var response = await env.AI.run('@cf/qwen/qwen1.5-14b-chat-awq', {
     messages: apiMessages,
     stream: true
   });
-
-  // Cloudflare AI 返回的已经是 ReadableStream
   return new Response(response, {
     headers: { 'Content-Type': 'text/plain; charset=utf-8', ...corsHeaders }
   });
