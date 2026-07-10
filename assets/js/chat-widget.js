@@ -662,14 +662,27 @@
   // ========== 暴露 API ==========
   window.LumiPathChat = { show: showModal, hide: hideModal, config: CONFIG };
 
+  // ========== 支付弹窗 ==========
+  function openPaymentModal() {
+    var modal = document.getElementById('payment-modal');
+    if (modal) {
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
   // ========== 自动绑定 ==========
   function init() {
-    document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function(btn) {
+    document.querySelectorAll('[data-action="consult"], [data-action="assess"], [data-action="pay"]').forEach(function(btn) {
       btn.onclick = null;
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         var action = btn.getAttribute('data-action');
-        showModal(action === 'assess' ? 'assess' : 'consult');
+        if (action === 'pay') {
+          openPaymentModal();
+        } else {
+          showModal(action === 'assess' ? 'assess' : 'consult');
+        }
       });
     });
   }
