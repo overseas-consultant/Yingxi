@@ -1,12 +1,94 @@
 /**
- * 星途 LumiPath · AI跨境规划顾问 · 聊天+测评+支付组件 v4
+ * 星途 LumiPath · AI跨境规划顾问 · 聊天+测评+支付组件 v5
  * 参照妙搭参考站设计：
  * - 咨询：白底卡片，蓝色头部，机器人头像，6个快捷入口，对话输入
- * - 测评：紫色头部，3步引导式（兴趣→学业→目标），开始测评按钮
+ * - 测评：紫色头部，3步引导式，开始测评按钮
  * - 支付：支付宝扫码弹窗，收款码+操作指引
+ * v5: 按页面类型（留学/旅游/工作签）自动切换咨询内容和测评问题
  */
 (function () {
   'use strict';
+
+  // 检测当前页面类型
+  var pagePath = window.location.pathname;
+  var pageType = 'study'; // 默认留学
+  if (pagePath.indexOf('/travel/') !== -1) pageType = 'travel';
+  else if (pagePath.indexOf('/workvisa/') !== -1) pageType = 'work';
+
+  // 各页面配置
+  var PAGE_CONFIGS = {
+    study: {
+      botName: '小西',
+      botTitle: '咨询顾问',
+      botSub: 'AI智能顾问 · 留学规划 · 选校推荐 · 实时答疑',
+      welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI留学规划顾问，请选择您感兴趣的方向或直接提问',
+      quickTopics: [
+        { icon: '🎓', title: '新加坡跳板', desc: '本科直升 · 硕士直申 · PSB Academy' },
+        { icon: '🎓', title: '名校直申', desc: '英国G5 · 澳洲八大 · 美国Top50' },
+        { icon: '💰', title: '费用与奖学金', desc: '四国费用对比 · 奖学金申请指南' },
+        { icon: '📑', title: '签证与认证', desc: '签证政策 · 中留服认证 · 学历认可' },
+        { icon: '✨', title: '个性规划', desc: 'AI测评 · 选校推荐 · 一对一咨询' },
+        { icon: '🎓', title: '技能院校', desc: '就业导向 · 澳洲TAFE · 可移民' }
+      ],
+      assessTitle: 'AI兴趣天赋测评',
+      assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
+      assessIntroTitle: '发现你的留学方向',
+      assessIntroDesc: '只需3步，AI将基于你的兴趣、学业背景和目标国家，为你生成个性化的专业方向推荐与留学路径建议',
+      assessSteps: [
+        { label: '✨ Step 1', title: '兴趣方向', q: '你对哪些领域感兴趣？' },
+        { label: '📖 Step 2', title: '学业背景', q: '你目前的教育情况？' },
+        { label: '🌐 Step 3', title: '目标国家', q: '你倾向哪些留学目的地？' }
+      ]
+    },
+    travel: {
+      botName: '小途',
+      botTitle: '旅游咨询顾问',
+      botSub: 'AI智能顾问 · 跨境旅游 · 定制行程 · 签证办理',
+      welcomeText: '你好！我是<b>小途</b>👋<br>星途LumiPath AI跨境旅游顾问，请选择您感兴趣的旅游方向或直接提问',
+      quickTopics: [
+        { icon: '✈️', title: '出境旅游', desc: '国人出国 · 热门目的地 · 自由行/跟团' },
+        { icon: '🇨🇳', title: '入境旅游', desc: '海外游客来华 · 签证代办 · 中文导览' },
+        { icon: '📝', title: '签证办理', desc: '旅游签证 · 多国通办 · 快速出签' },
+        { icon: '🗺️', title: '定制行程', desc: '一对一规划 · 深度游 · 私人定制' },
+        { icon: '💰', title: '费用预算', desc: '透明报价 · 无强制消费 · 性价比' },
+        { icon: '🛡️', title: '旅游保险', desc: '境外保险 · 安全保障 · 紧急救援' }
+      ],
+      assessTitle: 'AI旅游需求测评',
+      assessSub: '智能匹配旅游方案 · 定制行程推荐 · 预算评估',
+      assessIntroTitle: '发现你的旅行方向',
+      assessIntroDesc: '只需3步，AI将基于你的旅游偏好、出行计划和目的地意向，为你生成个性化的旅游方案推荐与行程建议',
+      assessSteps: [
+        { label: '✈️ Step 1', title: '出行意向', q: '你想出境游还是入境游？' },
+        { label: '📅 Step 2', title: '出行计划', q: '你的出行时间和人数？' },
+        { label: '🌍 Step 3', title: '目的地', q: '你倾向哪些旅游目的地？' }
+      ]
+    },
+    work: {
+      botName: '小达',
+      botTitle: '出国工作顾问',
+      botSub: 'AI智能顾问 · 合法工作签 · 海外就业 · 落地保障',
+      welcomeText: '你好！我是<b>小达</b>👋<br>星途LumiPath AI出国工作顾问，请选择您感兴趣的方向或直接提问',
+      quickTopics: [
+        { icon: '🇦🇺', title: '澳洲工作签', desc: '合法工作签证 · 43岁内 · 8年社保' },
+        { icon: '🇬🇧', title: '英国工作签', desc: '工签办理 · 岗位匹配 · 合法合规' },
+        { icon: '🇪🇺', title: '欧洲工作签', desc: '多国可选 · 签证政策 · 就业机会' },
+        { icon: '🇲🇾', title: '马来西亚', desc: '工作签证 · 低门槛 · 华人友好' },
+        { icon: '📋', title: '签证条件', desc: '年龄/社保/技能要求 · 资格评估' },
+        { icon: '🏠', title: '海外落地保障', desc: '接机住宿 · 银行卡 · 手机卡 · 就业指导' }
+      ],
+      assessTitle: 'AI出国工作资格测评',
+      assessSub: '智能评估签证资格 · 匹配目标国家 · 海外就业规划',
+      assessIntroTitle: '评估你的出国工作资格',
+      assessIntroDesc: '只需3步，AI将基于你的年龄、工作经验和目标国家，为你评估签证资格并推荐最适合的出国工作路径',
+      assessSteps: [
+        { label: '👤 Step 1', title: '基本条件', q: '你的年龄和工作经验？' },
+        { label: '💼 Step 2', title: '技能背景', q: '你的专业技能和社保情况？' },
+        { label: '🌍 Step 3', title: '目标国家', q: '你倾向哪些工作目的地？' }
+      ]
+    }
+  };
+
+  var pageConfig = PAGE_CONFIGS[pageType] || PAGE_CONFIGS.study;
 
   var CONFIG = {
     apiEndpoint: '',
@@ -14,17 +96,9 @@
     leadMarker: '[LEAD_COMPLETE]',
     feishuBaseToken: 'Ck0QbHqOmaR457sRnE1ckmvTn6d',
     feishuTableId: 'tblDJLF1SHgmSV2p',
-    // 支付二维码图片路径（相对页面根）
     paymentQrUrl: '',
-    // 咨询快捷入口
-    quickTopics: [
-      { icon: '🎓', title: '新加坡跳板', desc: '本科直升 · 硕士直申 · PSB Academy' },
-      { icon: '🎓', title: '名校直申', desc: '英国G5 · 澳洲八大 · 美国Top50' },
-      { icon: '💰', title: '费用与奖学金', desc: '四国费用对比 · 奖学金申请指南' },
-      { icon: '📑', title: '签证与认证', desc: '签证政策 · 中留服认证 · 学历认可' },
-      { icon: '✨', title: '个性规划', desc: 'AI测评 · 选校推荐 · 一对一咨询' },
-      { icon: '🎓', title: '技能院校', desc: '就业导向 · 澳洲TAFE · 可移民' }
-    ]
+    pageType: pageType,
+    pageConfig: pageConfig
   };
 
   var messages = [];
@@ -239,8 +313,8 @@
     header.innerHTML = `
       <div class="lp-bot-avatar">🤖</div>
       <div class="lp-header-info">
-        <div class="lp-header-title">咨询顾问</div>
-        <div class="lp-header-sub">AI智能顾问 · 留学规划 · 选校推荐 · 实时答疑</div>
+        <div class="lp-header-title">${pageConfig.botTitle}</div>
+        <div class="lp-header-sub">${pageConfig.botSub}</div>
       </div>
       <div class="lp-header-status"><span></span>在线</div>
       <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
@@ -259,14 +333,14 @@
     welcome.className = 'lp-welcome';
     welcome.innerHTML = `
       <div class="lp-welcome-avatar">🤖</div>
-      <div class="lp-welcome-bubble">你好！我是<b>小西</b>👋<br>星途LumiPath AI跨境规划顾问，请选择您感兴趣的方向或直接提问</div>
+      <div class="lp-welcome-bubble">${pageConfig.welcomeText}</div>
     `;
     messagesContainer.appendChild(welcome);
 
     // 快捷入口
     var quickGrid = document.createElement('div');
     quickGrid.className = 'lp-quick-grid';
-    CONFIG.quickTopics.forEach(function(topic) {
+    pageConfig.quickTopics.forEach(function(topic) {
       var item = document.createElement('div');
       item.className = 'lp-quick-item';
       item.innerHTML = `<div class="lp-qi-icon">${topic.icon}</div><div class="lp-qi-title">${topic.title}</div><div class="lp-qi-desc">${topic.desc}</div>`;
@@ -554,40 +628,40 @@
       <div class="lp-assess-header">
         <div class="lp-assess-icon">🧠</div>
         <div>
-          <div class="lp-assess-title">AI兴趣天赋测评</div>
-          <div class="lp-assess-sub">智能匹配专业方向 · 留学路径规划 · 个性化推荐</div>
+          <div class="lp-assess-title">${pageConfig.assessTitle}</div>
+          <div class="lp-assess-sub">${pageConfig.assessSub}</div>
         </div>
         <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
       </div>
       <div class="lp-assess-body">
         <div class="lp-assess-intro">
           <div class="lp-intro-icon">🧠</div>
-          <div class="lp-intro-title">发现你的留学方向</div>
-          <div class="lp-intro-desc">只需3步，AI将基于你的兴趣、学业背景和目标国家，为你生成个性化的专业方向推荐与留学路径建议</div>
+          <div class="lp-intro-title">${pageConfig.assessIntroTitle}</div>
+          <div class="lp-intro-desc">${pageConfig.assessIntroDesc}</div>
         </div>
         <div class="lp-step-list">
           <div class="lp-step-item">
             <div class="lp-step-num">1</div>
             <div class="lp-step-content">
-              <div class="lp-step-label">✨ Step 1</div>
-              <div class="lp-step-title">兴趣方向</div>
-              <div class="lp-step-q">你对哪些领域感兴趣？</div>
+              <div class="lp-step-label">${pageConfig.assessSteps[0].label}</div>
+              <div class="lp-step-title">${pageConfig.assessSteps[0].title}</div>
+              <div class="lp-step-q">${pageConfig.assessSteps[0].q}</div>
             </div>
           </div>
           <div class="lp-step-item">
             <div class="lp-step-num">2</div>
             <div class="lp-step-content">
-              <div class="lp-step-label">📖 Step 2</div>
-              <div class="lp-step-title">学业背景</div>
-              <div class="lp-step-q">你目前的教育情况？</div>
+              <div class="lp-step-label">${pageConfig.assessSteps[1].label}</div>
+              <div class="lp-step-title">${pageConfig.assessSteps[1].title}</div>
+              <div class="lp-step-q">${pageConfig.assessSteps[1].q}</div>
             </div>
           </div>
           <div class="lp-step-item">
             <div class="lp-step-num">3</div>
             <div class="lp-step-content">
-              <div class="lp-step-label">🌐 Step 3</div>
-              <div class="lp-step-title">目标国家</div>
-              <div class="lp-step-q">你倾向哪些留学目的地？</div>
+              <div class="lp-step-label">${pageConfig.assessSteps[2].label}</div>
+              <div class="lp-step-title">${pageConfig.assessSteps[2].title}</div>
+              <div class="lp-step-q">${pageConfig.assessSteps[2].q}</div>
             </div>
           </div>
         </div>
@@ -600,15 +674,24 @@
   }
 
   function renderAssessStep1() {
-    var interests = ['商科/金融', '计算机/IT', '工程/制造', '艺术/设计', '传媒/新闻', '教育/心理', '医学/护理', '法律', '科学/研究', '管理/创业'];
+    var stepCfg = pageConfig.assessSteps[0];
+    var options = [];
+    if (pageType === 'travel') {
+      options = ['出境游（国人出国）', '入境游（外国人来华）', '两者都有兴趣'];
+    } else if (pageType === 'work') {
+      options = ['25岁以下', '25-35岁', '35-43岁', '43岁以上', '1-5年工作经验', '5-10年工作经验', '10年以上工作经验'];
+    } else {
+      options = ['商科/金融', '计算机/IT', '工程/制造', '艺术/设计', '传媒/新闻', '教育/心理', '医学/护理', '法律', '科学/研究', '管理/创业'];
+    }
+    var isMulti = pageType !== 'work'; // 工作签步骤1单选年龄区间+工作经验可多选
     var dialog = document.createElement('div');
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
         <div class="lp-assess-icon">🧠</div>
         <div>
-          <div class="lp-assess-title">AI兴趣天赋测评</div>
-          <div class="lp-assess-sub">Step 1 / 3 · 兴趣方向</div>
+          <div class="lp-assess-title">${pageConfig.assessTitle}</div>
+          <div class="lp-assess-sub">Step 1 / 3 · ${stepCfg.title}</div>
         </div>
         <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
       </div>
@@ -617,44 +700,66 @@
           <button class="lp-back-btn" onclick="window.LumiPathChat._backIntro()">← 返回</button>
           <span class="lp-step-indicator">Step 1 / 3</span>
         </div>
-        <div class="lp-step-title">兴趣方向</div>
-        <div class="lp-step-question">你对哪些领域感兴趣？（可多选）</div>
-        <div class="lp-options" id="lp-interest-options"></div>
+        <div class="lp-step-title">${stepCfg.title}</div>
+        <div class="lp-step-question">${stepCfg.q}（${isMulti ? '可多选' : '请选择'}）</div>
+        <div class="lp-options" id="lp-step1-options"></div>
         <button class="lp-next-btn" id="lp-next-1" disabled>下一步 →</button>
       </div>
     `;
     modal.innerHTML = '';
     modal.appendChild(dialog);
-    var optsContainer = document.getElementById('lp-interest-options');
+    var optsContainer = document.getElementById('lp-step1-options');
     var selected = [];
-    interests.forEach(function(opt) {
+    options.forEach(function(opt) {
       var chip = document.createElement('div');
       chip.className = 'lp-option-chip';
       chip.textContent = opt;
       chip.onclick = function() {
-        var idx = selected.indexOf(opt);
-        if (idx > -1) { selected.splice(idx, 1); chip.classList.remove('selected'); }
-        else { selected.push(opt); chip.classList.add('selected'); }
+        if (isMulti) {
+          var idx = selected.indexOf(opt);
+          if (idx > -1) { selected.splice(idx, 1); chip.classList.remove('selected'); }
+          else { selected.push(opt); chip.classList.add('selected'); }
+        } else {
+          optsContainer.querySelectorAll('.lp-option-chip').forEach(function(c) { c.classList.remove('selected'); });
+          chip.classList.add('selected');
+          selected = [opt];
+        }
         document.getElementById('lp-next-1').disabled = selected.length === 0;
       };
       optsContainer.appendChild(chip);
     });
     document.getElementById('lp-next-1').onclick = function() {
-      assessData.interests = selected;
+      assessData.step1 = selected;
       assessStep = 2;
       renderAssessStep2();
     };
   }
 
   function renderAssessStep2() {
+    var stepCfg = pageConfig.assessSteps[1];
     var dialog = document.createElement('div');
     dialog.className = 'lp-dialog lp-assess-dialog';
+
+    // 根据页面类型生成不同的问题和选项
+    var extraFields = '';
+    var options = [];
+    if (pageType === 'travel') {
+      options = ['3天内', '3-7天', '7-15天', '15天以上', '未定'];
+      extraFields = `<div style="margin-bottom:12px"><div style="font-size:.82rem;color:#475569;margin-bottom:6px">出行人数</div><input type="text" class="lp-text-input" id="lp-extra-input" placeholder="如 2人、家庭4人等"></div>`;
+    } else if (pageType === 'work') {
+      options = ['制造业', '建筑业', '服务业', 'IT/技术', '医疗/护理', '农业', '司机/物流', '其他'];
+      extraFields = `<div style="margin-bottom:12px"><div style="font-size:.82rem;color:#475569;margin-bottom:6px">社保缴纳年限</div><input type="text" class="lp-text-input" id="lp-extra-input" placeholder="如 8年、10年等"></div>`;
+    } else {
+      options = ['初中', '高中在读', '高中毕业', '大学在读', '大学毕业', '已工作'];
+      extraFields = `<div style="margin-bottom:12px"><div style="font-size:.82rem;color:#475569;margin-bottom:6px">高中成绩（均分）</div><input type="text" class="lp-text-input" id="lp-extra-input" placeholder="如 75、80、未参加高考等"></div>`;
+    }
+
     dialog.innerHTML = `
       <div class="lp-assess-header">
         <div class="lp-assess-icon">🧠</div>
         <div>
-          <div class="lp-assess-title">AI兴趣天赋测评</div>
-          <div class="lp-assess-sub">Step 2 / 3 · 学业背景</div>
+          <div class="lp-assess-title">${pageConfig.assessTitle}</div>
+          <div class="lp-assess-sub">Step 2 / 3 · ${stepCfg.title}</div>
         </div>
         <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
       </div>
@@ -663,22 +768,18 @@
           <button class="lp-back-btn" onclick="window.LumiPathChat._backStep1()">← 返回</button>
           <span class="lp-step-indicator">Step 2 / 3</span>
         </div>
-        <div class="lp-step-title">学业背景</div>
-        <div class="lp-step-question">你目前的教育情况？</div>
-        <div class="lp-options" id="lp-edu-options"></div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:.82rem;color:#475569;margin-bottom:6px">高中成绩（均分）</div>
-          <input type="text" class="lp-text-input" id="lp-grade-input" placeholder="如 75、80、未参加高考等">
-        </div>
+        <div class="lp-step-title">${stepCfg.title}</div>
+        <div class="lp-step-question">${stepCfg.q}（请选择）</div>
+        <div class="lp-options" id="lp-step2-options"></div>
+        ${extraFields}
         <button class="lp-next-btn" id="lp-next-2" disabled>下一步 →</button>
       </div>
     `;
     modal.innerHTML = '';
     modal.appendChild(dialog);
-    var eduLevels = ['初中', '高中在读', '高中毕业', '大学在读', '大学毕业', '已工作'];
-    var optsContainer = document.getElementById('lp-edu-options');
+    var optsContainer = document.getElementById('lp-step2-options');
     var selectedEdu = null;
-    eduLevels.forEach(function(opt) {
+    options.forEach(function(opt) {
       var chip = document.createElement('div');
       chip.className = 'lp-option-chip';
       chip.textContent = opt;
@@ -690,29 +791,37 @@
       };
       optsContainer.appendChild(chip);
     });
-    var gradeInput = document.getElementById('lp-grade-input');
-    gradeInput.oninput = checkStep2Ready;
+    var extraInput = document.getElementById('lp-extra-input');
+    if (extraInput) extraInput.oninput = checkStep2Ready;
     function checkStep2Ready() {
       document.getElementById('lp-next-2').disabled = !selectedEdu;
     }
     document.getElementById('lp-next-2').onclick = function() {
-      assessData.education = selectedEdu;
-      assessData.grade = gradeInput.value.trim();
+      assessData.step2 = selectedEdu;
+      assessData.step2Extra = extraInput ? extraInput.value.trim() : '';
       assessStep = 3;
       renderAssessStep3();
     };
   }
 
   function renderAssessStep3() {
-    var countries = ['🇸🇬 新加坡', '🇬🇧 英国', '🇦🇺 澳大利亚', '🇲🇾 马来西亚', '🇺🇸 美国', '🇷🇺 俄罗斯', '🇨🇦 加拿大', '🇭🇰 中国香港', '暂未确定'];
+    var stepCfg = pageConfig.assessSteps[2];
+    var countries = [];
+    if (pageType === 'travel') {
+      countries = ['🇯🇵 日本', '🇰🇷 韩国', '🇹🇭 泰国', '🇻🇳 越南', '🇸🇬 新加坡', '🇲🇾 马来西亚', '🇬🇧 英国', '🇦🇺 澳大利亚', '🇨🇳 中国国内', '暂未确定'];
+    } else if (pageType === 'work') {
+      countries = ['🇦🇺 澳大利亚', '🇬🇧 英国', '🇪🇺 欧洲', '🇲🇾 马来西亚', '🇳🇿 新西兰', '🇨🇦 加拿大', '暂未确定'];
+    } else {
+      countries = ['🇸🇬 新加坡', '🇬🇧 英国', '🇦🇺 澳大利亚', '🇲🇾 马来西亚', '🇺🇸 美国', '🇷🇺 俄罗斯', '🇨🇦 加拿大', '🇭🇰 中国香港', '暂未确定'];
+    }
     var dialog = document.createElement('div');
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
         <div class="lp-assess-icon">🧠</div>
         <div>
-          <div class="lp-assess-title">AI兴趣天赋测评</div>
-          <div class="lp-assess-sub">Step 3 / 3 · 目标国家</div>
+          <div class="lp-assess-title">${pageConfig.assessTitle}</div>
+          <div class="lp-assess-sub">Step 3 / 3 · ${stepCfg.title}</div>
         </div>
         <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
       </div>
@@ -721,8 +830,8 @@
           <button class="lp-back-btn" onclick="window.LumiPathChat._backStep2()">← 返回</button>
           <span class="lp-step-indicator">Step 3 / 3</span>
         </div>
-        <div class="lp-step-title">目标国家</div>
-        <div class="lp-step-question">你倾向哪些留学目的地？（可多选）</div>
+        <div class="lp-step-title">${stepCfg.title}</div>
+        <div class="lp-step-question">${stepCfg.q}（可多选）</div>
         <div class="lp-options" id="lp-country-options"></div>
         <div style="margin-bottom:12px">
           <div style="font-size:.82rem;color:#475569;margin-bottom:6px">您的称呼</div>
@@ -768,13 +877,14 @@
 
   function submitAssess() {
     var data = {
-      source: '免费测评',
+      source: pageType === 'travel' ? '跨境旅游测评' : pageType === 'work' ? '出国工作测评' : '免费测评',
       name: assessData.name,
       phone: assessData.phone,
-      interests: (assessData.interests || []).join(','),
-      education: assessData.education || '',
-      grade: assessData.grade || '',
-      countries: (assessData.countries || []).join(',')
+      step1: (assessData.step1 || []).join(','),
+      step2: assessData.step2 || '',
+      step2Extra: assessData.step2Extra || '',
+      countries: (assessData.countries || []).join(','),
+      pageType: pageType
     };
 
     // 提交到Worker或本地存储
@@ -796,7 +906,7 @@
       <div class="lp-assess-header">
         <div class="lp-assess-icon">🧠</div>
         <div>
-          <div class="lp-assess-title">AI兴趣天赋测评</div>
+          <div class="lp-assess-title">${pageConfig.assessTitle}</div>
           <div class="lp-assess-sub">测评完成</div>
         </div>
         <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
