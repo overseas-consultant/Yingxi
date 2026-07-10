@@ -230,19 +230,17 @@
         var modal = document.getElementById('consult-modal');
         if (modal) {
           openModal(modal);
-          // Load OpenHex iframe
+          // Hide loading overlay once iframe loads
           var iframe = modal.querySelector('#openhex-chat-frame');
-          var fallback = modal.querySelector('#chat-fallback');
-          if (iframe) {
-            // Reset loaded state and always load fresh
-            delete iframe.dataset.loaded;
-            iframe.src = OPENHEX_URL;
-            // Show fallback if iframe doesn't load within 5 seconds
+          var loading = modal.querySelector('#chat-loading');
+          if (iframe && loading) {
+            iframe.onload = function() {
+              loading.style.display = 'none';
+            };
+            // Fallback: hide loading after 3s even if onload doesn't fire
             setTimeout(function() {
-              if (!iframe.dataset.loaded) {
-                if (fallback) fallback.style.display = '';
-              }
-            }, 5000);
+              if (loading) loading.style.display = 'none';
+            }, 3000);
           }
         }
       });
