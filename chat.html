@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>跨境规划顾问 - AI跨境规划顾问</title>
+<title>星途LumiPath · AI跨境规划顾问</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -16,6 +16,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .chat-title{color:#8a9bb5;font-size:.8rem}
 .chat-status{display:flex;align-items:center;gap:4px;color:#4ade80;font-size:.75rem}
 .chat-status::before{content:'';width:6px;height:6px;background:#4ade80;border-radius:50%}
+/* Header buttons */
+.header-btns{display:flex;gap:6px;flex-shrink:0}
+.share-btn{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.25);color:#d4af37;font-size:1.2rem;padding:6px 10px;border-radius:8px;cursor:pointer}
+.share-btn:hover{background:rgba(212,175,55,0.25)}
+.ai-btn{background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1628;border:none;padding:6px 12px;border-radius:8px;font-weight:600;font-size:.8rem;cursor:pointer;white-space:nowrap}
+.ai-btn:hover{opacity:.9}
 /* Body */
 .chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
 .chat-body::-webkit-scrollbar{width:4px}
@@ -31,9 +37,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .chat-input::placeholder{color:#5a6d85}
 .send-btn{background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1628;border:none;padding:10px 18px;border-radius:8px;font-weight:600;cursor:pointer;transition:opacity .2s;flex-shrink:0}
 .send-btn:hover,.send-btn:active{opacity:.9}
-/* Share & QR */
-.share-btn{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.25);color:#d4af37;font-size:1.2rem;padding:6px 10px;border-radius:8px;cursor:pointer;flex-shrink:0}
-.share-btn:hover{background:rgba(212,175,55,0.25)}
+/* QR overlay */
 .qr-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;justify-content:center;align-items:center}
 .qr-overlay.active{display:flex}
 .qr-card{background:#0d1f35;border:1px solid rgba(212,175,55,0.2);border-radius:16px;padding:32px;text-align:center;max-width:320px;width:90%}
@@ -59,11 +63,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .result-card .cta-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .result-card .cta-main{background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1628;border:none;padding:8px 20px;border-radius:6px;font-weight:600;cursor:pointer;font-size:.85rem}
 .result-card .cta-sub{background:transparent;color:#d4af37;border:1px solid #d4af37;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:.85rem}
+.result-card .cta-ai{background:transparent;color:#8a9bb5;border:1px solid rgba(138,155,181,0.3);padding:8px 20px;border-radius:6px;cursor:pointer;font-size:.85rem}
 /* Mobile */
 @media(max-width:480px){
   .chat-body{padding:12px}
   .chat-footer{padding:10px 12px}
   .msg{font-size:.85rem}
+  .ai-btn{font-size:.75rem;padding:6px 8px}
 }
 </style>
 </head>
@@ -72,11 +78,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <div class="chat-header">
   <div class="chat-avatar">🎯</div>
   <div class="chat-info">
-    <div class="chat-name">跨境规划顾问</div>
-    <div class="chat-title">AI跨境规划顾问</div>
+    <div class="chat-name">星途 LumiPath 跨境规划顾问</div>
+    <div class="chat-title">AI跨境规划顾问 · 6大业务线</div>
   </div>
   <div class="chat-status">在线</div>
-  <button class="share-btn" onclick="toggleQR()" title="分享二维码">📱</button>
+  <div class="header-btns">
+    <button class="ai-btn" onclick="openAIAdvisor()">AI顾问</button>
+    <button class="share-btn" onclick="toggleQR()" title="分享二维码">📱</button>
+  </div>
 </div>
 
 <div class="qr-overlay" id="qrOverlay" onclick="toggleQR()">
@@ -92,11 +101,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 
 <div class="chat-footer">
   <div class="quick-actions" id="quickActions">
-    <button class="qa-btn" onclick="sendQuick('出国务工')">出国务工</button>
-    <button class="qa-btn" onclick="sendQuick('低龄升学')">低龄升学</button>
-    <button class="qa-btn" onclick="sendQuick('留学移民')">留学移民</button>
-    <button class="qa-btn" onclick="sendQuick('AI就业')">AI就业</button>
-    <button class="qa-btn" onclick="sendQuick('跨境旅游')">跨境旅游</button>
+    <button class="qa-btn" onclick="sendQuick('低龄升学')">🎓 低龄升学</button>
+    <button class="qa-btn" onclick="sendQuick('综合留学')">📚 综合留学</button>
+    <button class="qa-btn" onclick="sendQuick('出国旅游')">✈️ 出国旅游</button>
+    <button class="qa-btn" onclick="sendQuick('AI就业')">🤖 AI就业</button>
+    <button class="qa-btn" onclick="sendQuick('出国工作')">🏗️ 出国工作</button>
+    <button class="qa-btn" onclick="sendQuick('移民')">🏠 移民</button>
   </div>
   <div class="chat-input-row">
     <input type="text" id="chatInput" class="chat-input" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter')sendMessage()">
@@ -105,21 +115,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 </div>
 
 <script>
+// === 系统配置 ===
+var OPENHEX_URL = 'https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd';
+// 飞书CRM表单链接（待配置，获取后替换）
+var CRM_FORM_URL = 'FEISHU_FORM_URL';
+var API_ENDPOINT = 'https://chat-api.422941896.workers.dev';
+var API_ENABLED = true;
+var chatHistory = [];
+
+// === 打开AI顾问 ===
+function openAIAdvisor() {
+  window.open(OPENHEX_URL, '_blank');
+}
+
+// === 打开CRM表单 ===
+function openCRMForm() {
+  if (CRM_FORM_URL !== 'FEISHU_FORM_URL') {
+    window.open(CRM_FORM_URL, '_blank');
+  } else {
+    // 表单未配置时，引导到AI顾问
+    addMsg("正在为您连接AI顾问，请稍候...", "bot");
+    setTimeout(function(){ window.open(OPENHEX_URL, '_blank'); }, 800);
+  }
+}
+
 // === 问卷引擎 ===
 var QUIZ = {
   questions: [
     {id:1, text:"你的主要目标是什么？", opts:[
-      {label:"去海外工作赚钱", value:"work"},
-      {label:"为孩子规划教育路径", value:"study"},
-      {label:"想出国旅游", value:"travel"},
-      {label:"留学或移民", value:"immigration"},
-      {label:"转行进入AI行业", value:"ai-job"}
+      {label:"为孩子规划低龄升学路径", value:"study"},
+      {label:"综合留学申请（本科/硕士）", value:"study-all"},
+      {label:"出国旅游/自由行定制", value:"travel"},
+      {label:"转行AI行业就业", value:"ai-job"},
+      {label:"出国务工赚钱", value:"work"},
+      {label:"留学移民/拿绿卡", value:"immigration"}
     ]},
     {id:2, text:"你目前的年龄段？", opts:[
-      {label:"18-25岁", value:"young"},
-      {label:"26-35岁", value:"mid"},
-      {label:"36-43岁", value:"senior"},
-      {label:"43岁以上", value:"older"}
+      {label:"18-25岁", value:"18-25"},
+      {label:"26-35岁", value:"26-35"},
+      {label:"36-43岁", value:"36-43"},
+      {label:"43岁以上", value:"43+"}
     ]},
     {id:3, text:"你的预算范围？", opts:[
       {label:"先了解一下，预算有限（千元以内）", value:"low"},
@@ -140,12 +175,38 @@ var QUIZ = {
   reset: function(){ this.qIdx = 0; this.answers = {}; }
 };
 
+// === 6大业务线产品矩阵 ===
 var PRODUCTS = {
-  work: { name:"出国务工", icon:"🏗️", tier:{ entry:{price:"9.9元",label:"AI资质测评",desc:"评估你的签证适配度，了解可行路径和收入预期"}, mid:{price:"299-999元",label:"定制务工方案",desc:"含签证路径、雇主匹配、落地安顿全流程规划"}, high:{price:"1万-8万",label:"全流程代办",desc:"从材料准备到签证获批+海外落地，全程跟进"} }},
-  study: { name:"低龄升学", icon:"🎓", tier:{ entry:{price:"9.9元",label:"升学路径测评",desc:"评估孩子适配的非应试升学路径和院校选择"}, mid:{price:"299-999元",label:"定制升学方案",desc:"含院校推荐、申请时间线、面试准备指导"}, high:{price:"3万-15万",label:"全流程升学代办",desc:"从选校到offer到手，全程托管式服务"} }},
-  travel: { name:"跨境旅游", icon:"✈️", tier:{ entry:{price:"9.9元",label:"旅行偏好测评",desc:"了解你的旅行风格，推荐适配线路"}, mid:{price:"299-999元",label:"定制行程方案",desc:"含小众线路规划、签证协助、住宿推荐"}, high:{price:"1万-5万",label:"全流程地接服务",desc:"从签证到机票酒店到当地向导，一站式搞定"} }},
-  immigration: { name:"留学移民", icon:"🏠", tier:{ entry:{price:"9.9元",label:"移民资格测评",desc:"评估你的移民条件，了解可行路径和时间线"}, mid:{price:"299-999元",label:"定制移民方案",desc:"含路径规划、材料清单、时间节点预估"}, high:{price:"5万-15万+",label:"全流程移民代办",desc:"从EOI递交到签证获批，律师团队全程跟进"} }},
-  "ai-job": { name:"AI就业", icon:"🤖", tier:{ entry:{price:"9.9元",label:"AI岗适配测评",desc:"评估你的AI转行潜力和适配岗位方向"}, mid:{price:"299-999元",label:"定制学习路径",desc:"含技能培训路线、项目实战、简历优化"}, high:{price:"2999-9999元",label:"就业直通车",desc:"系统培训+项目实战+企业内推，直到拿offer"} }}
+  study: { name:"低龄升学", icon:"🎓", tier:{
+    entry:{price:"9.9元",label:"升学路径测评",desc:"评估孩子适配的非应试升学路径，含PSB/SIM跳板方案评估"},
+    mid:{price:"299-999元",label:"定制升学方案",desc:"含院校推荐（QS前300）、申请时间线、面试准备指导"},
+    high:{price:"3万-15万",label:"全流程升学代办",desc:"从选校到offer到手，PSB/SIM代理合作，中留服认证"}
+  }},
+  "study-all": { name:"综合留学", icon:"📚", tier:{
+    entry:{price:"9.9元",label:"留学适配测评",desc:"评估你的背景匹配的院校层次和国家方向"},
+    mid:{price:"299-999元",label:"定制留学方案",desc:"含选校定位、文书框架、申请时间线规划"},
+    high:{price:"3万-15万",label:"全流程留学代办",desc:"从选校到签证，澳/英/欧/马多国资源，全程托管"}
+  }},
+  travel: { name:"跨境旅游", icon:"✈️", tier:{
+    entry:{price:"9.9元",label:"旅行偏好测评",desc:"了解你的旅行风格，推荐适配线路"},
+    mid:{price:"299-999元",label:"定制行程方案",desc:"含小众线路规划、签证协助、住宿推荐"},
+    high:{price:"1万-5万",label:"全流程地接服务",desc:"从签证到机票酒店到当地向导，双向（出境+来华）"}
+  }},
+  "ai-job": { name:"AI就业", icon:"🤖", tier:{
+    entry:{price:"9.9元",label:"AI岗适配测评",desc:"评估你的AI转行潜力和适配岗位方向"},
+    mid:{price:"299-999元",label:"定制学习路径",desc:"含技能培训路线、项目实战、简历优化"},
+    high:{price:"2999-9999元",label:"就业直通车",desc:"系统培训+实战接单+企业内推，训练你的AI能力实现变现"}
+  }},
+  work: { name:"出国工作", icon:"🏗️", tier:{
+    entry:{price:"9.9元",label:"AI资质测评",desc:"评估你的签证适配度，了解可行路径和收入预期"},
+    mid:{price:"299-999元",label:"定制务工方案",desc:"含签证路径、雇主匹配、落地安顿全流程规划"},
+    high:{price:"1万-8万",label:"全流程代办",desc:"从材料准备到签证获批+海外落地，43岁以内8年+社保"}
+  }},
+  immigration: { name:"移民", icon:"🏠", tier:{
+    entry:{price:"9.9元",label:"移民资格测评",desc:"评估你的移民条件，了解可行路径和时间线"},
+    mid:{price:"299-999元",label:"定制移民方案",desc:"含路径规划、材料清单、时间节点预估"},
+    high:{price:"5万-15万+",label:"全流程移民代办",desc:"从EOI递交到签证获批，律师团队全程跟进"}
+  }}
 };
 
 var quizActive = false;
@@ -178,8 +239,8 @@ function classify(answers) {
   var goal = answers[1];
   var budget = answers[3];
   var urgency = answers[4];
-  var map = {work:"work",study:"study",travel:"travel",immigration:"immigration","ai-job":"ai-job"};
-  var category = map[goal] || "work";
+  var map = {study:"study","study-all":"study-all",travel:"travel","ai-job":"ai-job",work:"work",immigration:"immigration"};
+  var category = map[goal] || "study";
   var tier = "entry";
   if (budget === "mid" && urgency !== "relaxed") tier = "mid";
   if (budget === "high" || urgency === "urgent") tier = "high";
@@ -192,7 +253,15 @@ function addResultCard(category, tier) {
   var body = document.getElementById("chatBody");
   var div = document.createElement("div");
   div.className = "msg bot";
-  div.innerHTML = '<div class="result-card"><h4>'+prod.icon+' '+prod.name+' · '+plan.label+'</h4><p>'+plan.desc+'</p><div class="price">'+plan.price+'</div><div class="cta-row"><button class="cta-main" onclick="startPurchase(\''+category+'\',\''+tier+'\')">立即购买</button><button class="cta-sub" onclick="sendQuick(\'我想了解更多细节\')">了解更多</button></div></div>';
+  div.innerHTML = '<div class="result-card">'+
+    '<h4>'+prod.icon+' '+prod.name+' · '+plan.label+'</h4>'+
+    '<p>'+plan.desc+'</p>'+
+    '<div class="price">'+plan.price+'</div>'+
+    '<div class="cta-row">'+
+      '<button class="cta-main" onclick="startPurchase(\''+category+'\',\''+tier+'\')">立即咨询登记</button>'+
+      '<button class="cta-sub" onclick="openCRMForm()">填写表单</button>'+
+      '<button class="cta-ai" onclick="openAIAdvisor()">与AI顾问深聊</button>'+
+    '</div></div>';
   body.appendChild(div);
   body.scrollTop = body.scrollHeight;
 }
@@ -206,6 +275,24 @@ function startQuiz() {
 
 function askQuestion() {
   if (QUIZ.isDone()) { finishQuiz(); return; }
+  // 动态年龄选项：根据第1题（目标）的答案切换
+  if (QUIZ.qIdx === 1) {
+    var goal = QUIZ.answers[1];
+    if (goal === "study") {
+      QUIZ.questions[1].opts = [
+        {label:"15-17岁", value:"15-17"},
+        {label:"18-22岁", value:"18-22"},
+        {label:"23岁以上", value:"23+"}
+      ];
+    } else {
+      QUIZ.questions[1].opts = [
+        {label:"18-25岁", value:"18-25"},
+        {label:"26-35岁", value:"26-35"},
+        {label:"36-43岁", value:"36-43"},
+        {label:"43岁以上", value:"43+"}
+      ];
+    }
+  }
   var q = QUIZ.current();
   addMsg(q.text + "\n\n" + q.opts.map(function(o,i){ return (i+1)+". "+o.label; }).join("\n"), "bot");
 }
@@ -248,41 +335,57 @@ function finishQuiz() {
     var prod = PRODUCTS[result.category];
     addMsg("根据你的情况，你最匹配的是「"+prod.name+"」板块。以下是为你推荐的产品：", "bot");
     addResultCard(result.category, result.tier);
-    addMsg("你可以选择购买测评开始，也可以继续问我任何问题。", "bot");
+    addMsg("你可以选择「立即咨询登记」填写信息，或点击「与AI顾问深聊」获取更详细的方案。", "bot");
   }, 1200);
 }
 
 function startPurchase(category, tier) {
   var prod = PRODUCTS[category];
   var plan = prod.tier[tier];
-  addMsg("我要购买「"+prod.name+" · "+plan.label+"」", "user");
-  addMsg("好的！「"+prod.name+" · "+plan.label+"」（"+plan.price+"）\n\n购买流程：\n1. 扫描下方二维码完成支付\n2. 支付后自动跳转测评/服务页面\n3. 24小时内交付测评结果\n\n💡 提示：购买后我会自动跟进你的订单进度。", "bot");
+  addMsg("我要咨询「"+prod.name+" · "+plan.label+"」", "user");
+  addMsg("好的！「"+prod.name+" · "+plan.label+"」（"+plan.price+"）\n\n下一步：\n1. 填写咨询登记表单，顾问24小时内联系你\n2. 或直接与AI顾问在线对话，即时获取方案\n\n💡 点击下方按钮选择：", "bot");
+  // 弹出选择按钮
+  var body = document.getElementById("chatBody");
+  var div = document.createElement("div");
+  div.className = "msg bot";
+  div.innerHTML = '<div class="result-card" style="margin-top:0">'+
+    '<div class="cta-row">'+
+      '<button class="cta-main" onclick="openCRMForm()">填写咨询表单</button>'+
+      '<button class="cta-ai" onclick="openAIAdvisor()">与AI顾问对话</button>'+
+    '</div></div>';
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
 }
 
 function handleGeneral(input) {
   var lower = input.toLowerCase();
-  if (lower.indexOf("工作")>=0||lower.indexOf("打工")>=0||lower.indexOf("务工")>=0||lower.indexOf("出国")>=0) {
-    addMsg("出国务工是我们最成熟的服务线。", "bot");
+  if (lower.indexOf("低龄")>=0||lower.indexOf("孩子")>=0||lower.indexOf("升学")>=0||lower.indexOf("初中")>=0||lower.indexOf("高中")>=0||lower.indexOf("psb")>=0||lower.indexOf("sim")>=0) {
+    addMsg("低龄升学是我们的主力业务线。通过PSB/SIM跳板，低分弯道超车直通QS前25名校（悉尼大学、莫纳什等），费用比直申省50%+，中留服认证。\n\n让我帮你评估一下最合适的路径。", "bot");
     setTimeout(function(){ startQuiz(); }, 500);
     return;
   }
-  if (lower.indexOf("留学")>=0||lower.indexOf("移民")>=0||lower.indexOf("绿卡")>=0) {
-    addMsg("留学移民涉及复杂的身份规划，让我帮你评估一下最合适的路径。", "bot");
+  if (lower.indexOf("综合留学")>=0||lower.indexOf("本科")>=0||lower.indexOf("硕士")>=0||lower.indexOf("博士")>=0||lower.indexOf("申请学校")>=0) {
+    addMsg("综合留学覆盖澳/英/欧/马多国，从选校定位到签证获批全程托管。让我帮你评估。", "bot");
     setTimeout(function(){ startQuiz(); }, 500);
     return;
   }
-  if (lower.indexOf("旅游")>=0||lower.indexOf("旅行")>=0||lower.indexOf("玩")>=0) {
-    addMsg("跨境旅游我们有澳洲/欧洲/马来西亚多条特色线路，帮你匹配最合适的。", "bot");
+  if (lower.indexOf("工作")>=0||lower.indexOf("打工")>=0||lower.indexOf("务工")>=0) {
+    addMsg("出国务工——合法工作签，43岁以内8年+社保可申请。澳洲/英国/欧洲/马来西亚多国资源。", "bot");
     setTimeout(function(){ startQuiz(); }, 500);
     return;
   }
-  if (lower.indexOf("升学")>=0||lower.indexOf("学校")>=0||lower.indexOf("孩子")>=0||lower.indexOf("名校")>=0) {
-    addMsg("低龄升学是非应试路径的优质选择，全球前300名校学位可期。", "bot");
+  if (lower.indexOf("移民")>=0||lower.indexOf("绿卡")>=0||lower.indexOf("pr")>=0||lower.indexOf("永居")>=0) {
+    addMsg("移民涉及复杂的身份规划，我们有合规路径和律师团队。让我帮你评估。", "bot");
     setTimeout(function(){ startQuiz(); }, 500);
     return;
   }
-  if (lower.indexOf("ai")>=0||lower.indexOf("转行")>=0||lower.indexOf("培训")>=0||lower.indexOf("就业")>=0||lower.indexOf("人工智能")>=0) {
-    addMsg("AI行业现在人才缺口很大，我们有系统的培训+内推路径。", "bot");
+  if (lower.indexOf("旅游")>=0||lower.indexOf("旅行")>=0||lower.indexOf("自由行")>=0||lower.indexOf("玩")>=0) {
+    addMsg("跨境旅游双向服务：国人出境 + 海外游客来华。澳洲/欧洲/马来西亚特色线路。", "bot");
+    setTimeout(function(){ startQuiz(); }, 500);
+    return;
+  }
+  if (lower.indexOf("ai")>=0||lower.indexOf("转行")>=0||lower.indexOf("培训")>=0||lower.indexOf("就业")>=0||lower.indexOf("人工智能")>=0||lower.indexOf("接单")>=0) {
+    addMsg("AI就业——不是教课收学费，而是训练你的AI能力实现接单变现。系统课程+实战+内推。", "bot");
     setTimeout(function(){ startQuiz(); }, 500);
     return;
   }
@@ -290,11 +393,33 @@ function handleGeneral(input) {
     addMsg("我们的服务体系分三层：\n\n🔹 9.9元 AI测评 — 快速评估你的资质\n🔹 299-999元 定制方案 — 详细的路径规划\n🔹 1万-15万+ 全流程代办 — 高确定性交付\n\n大部分客户从9.9元测评开始，先了解自己适合什么。要试试吗？", "bot");
     return;
   }
-  if (lower.indexOf("靠谱")>=0||lower.indexOf("真的")>=0||lower.indexOf("安全")>=0) {
+  if (lower.indexOf("靠谱")>=0||lower.indexOf("真的")>=0||lower.indexOf("安全")>=0||lower.indexOf("骗")>=0) {
     addMsg("完全理解你的顾虑。我们坚持三条底线：\n\n1. 只做合法合规路径，不碰灰色地带\n2. 不承诺100%成功，只讲真实概率和路径\n3. 所有上游资源（院校/工厂/律所）均为一手合作\n\n你可以从9.9元测评开始，几乎没有风险，先了解再决定。", "bot");
     return;
   }
-  addMsg("好的，我主要帮你解决以下几个方面的问题：\n\n🏗️ 出国务工 — 合法工作签证，收入翻倍\n🎓 低龄升学 — 非应试路径，全球前300名校\n✈️ 跨境旅游 — 高性价比特色线路\n🏠 留学移民 — 合规身份规划\n🤖 AI就业 — 技能培训+内推\n\n你可以直接告诉我你感兴趣的方向，或者点击下方按钮开始AI测评。", "bot");
+  if (lower.indexOf("ai顾问")>=0||lower.indexOf("真人")>=0||lower.indexOf("客服")>=0||lower.indexOf("人工")>=0) {
+    addMsg("你可以直接与我们的AI顾问在线对话，它能回答更详细的问题：", "bot");
+    var body = document.getElementById("chatBody");
+    var div = document.createElement("div");
+    div.className = "msg bot";
+    div.innerHTML = '<div class="result-card" style="margin-top:0"><div class="cta-row"><button class="cta-main" onclick="openAIAdvisor()">开始与AI顾问对话</button></div></div>';
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+    return;
+  }
+  addMsg("好的，我主要帮你解决以下6个方面：\n\n🎓 低龄升学 — PSB/SIM跳板，非应试直通QS前300名校\n📚 综合留学 — 本科/硕士申请，澳/英/欧/马多国\n✈️ 跨境旅游 — 双向服务，高性价比特色线路\n🤖 AI就业 — 训练AI能力+接单变现+内推\n🏗️ 出国工作 — 合法工作签，43岁以内可申请\n🏠 移民 — 合规身份规划，律师团队全程跟进\n\n你可以直接告诉我感兴趣的方向，或点击下方按钮开始AI测评。", "bot");
+}
+
+// === AI API 调用 ===
+function callAPI(message) {
+  return fetch(API_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, history: chatHistory })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('API error ' + r.status);
+    return r.json();
+  });
 }
 
 function sendMessage() {
@@ -302,6 +427,8 @@ function sendMessage() {
   var text = input.value.trim();
   if (!text) return;
   addMsg(text, "user");
+  chatHistory.push({ role: 'user', content: text });
+  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
   input.value = "";
   if (quizActive) {
     if (!handleAnswer(text)) { addMsg("请先完成当前测评，或输入选项编号。", "bot"); }
@@ -311,18 +438,46 @@ function sendMessage() {
     startQuiz(); return;
   }
   addTyping();
-  setTimeout(function(){ removeTyping(); handleGeneral(text); }, 800);
+  if (API_ENABLED) {
+    callAPI(text).then(function(data) {
+      removeTyping();
+      var reply = data.reply || '';
+      addMsg(reply, "bot");
+      chatHistory.push({ role: 'assistant', content: reply });
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+    }).catch(function() {
+      removeTyping();
+      handleGeneral(text);
+    });
+  } else {
+    setTimeout(function(){ removeTyping(); handleGeneral(text); }, 800);
+  }
 }
 
 function sendQuick(label) {
   addMsg(label, "user");
+  chatHistory.push({ role: 'user', content: label });
+  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
   if (quizActive && QUIZ.current()) { handleAnswer(label); return; }
   addTyping();
-  setTimeout(function(){ removeTyping(); handleGeneral(label); }, 800);
+  if (API_ENABLED) {
+    callAPI(label).then(function(data) {
+      removeTyping();
+      var reply = data.reply || '';
+      addMsg(reply, "bot");
+      chatHistory.push({ role: 'assistant', content: reply });
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+    }).catch(function() {
+      removeTyping();
+      handleGeneral(label);
+    });
+  } else {
+    setTimeout(function(){ removeTyping(); handleGeneral(label); }, 800);
+  }
 }
 
 // Auto-start greeting
-addMsg("你好！我是跨境规划顾问，你的AI跨境规划顾问。\n\n不管你是想出国工作、规划孩子升学、留学移民，还是想转行AI，我都能帮你找到最适合的路径。\n\n点击下方按钮，或直接告诉我你的需求 👇", "bot");
+addMsg("你好！我是星途 LumiPath 的AI跨境规划顾问。\n\n不管你是为孩子规划升学、出国留学/工作/旅游，还是想转行AI或移民，我都能帮你找到最适合的路径。\n\n6大业务线全覆盖：\n🎓 低龄升学（PSB/SIM跳板→QS前300名校）\n📚 综合留学（本科/硕士·澳英欧马）\n✈️ 跨境旅游（双向·特色线路）\n🤖 AI就业（训练变现+内推）\n🏗️ 出国工作（合法工签·43岁内）\n🏠 移民（合规身份规划）\n\n点击下方按钮，或直接告诉我你的需求 👇", "bot");
 
 // QR code
 var qrGenerated = false;
@@ -331,7 +486,6 @@ function toggleQR() {
   overlay.classList.toggle("active");
   if (!qrGenerated && overlay.classList.contains("active")) {
     var url = window.location.href;
-    // Fallback: if local file, tell user to deploy first
     if (url.indexOf("file://") === 0) {
       document.getElementById("qrcode").innerHTML = '<p style="color:#0a1628;padding:20px;font-size:.85rem">请先部署到线上<br>再生成二维码</p>';
     } else {
