@@ -1661,3 +1661,370 @@ ul, ol { list-style: none; }
 .hidden { display: none !important; }
 .bg-light { background: var(--gray-50); }
 .bg-gradient-blue { background: linear-gradient(135deg, #152a63, #1e3a8a); color: var(--white); }
+
+
+/* ===== Floating Consult Button ===== */
+.float-consult {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.float-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  transition: all var(--transition);
+  position: relative;
+}
+
+.float-btn:hover {
+  transform: scale(1.1);
+}
+
+.float-btn.primary {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--gray-900);
+}
+
+.float-btn.secondary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--white);
+}
+
+.float-btn .float-label {
+  position: absolute;
+  right: 64px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--gray-900);
+  color: var(--white);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: .8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.float-btn:hover .float-label {
+  opacity: 1;
+}
+
+.float-btn .float-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+  font-size: .6rem;
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .float-consult {
+    bottom: 16px;
+    right: 16px;
+  }
+  .float-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+  .float-btn .float-label { display: none; }
+}
+
+/* ===== Six Paths Grid ===== */
+.paths-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.path-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid transparent;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.path-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary);
+}
+
+.path-card .path-num {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--gray-100);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.path-card:hover .path-num {
+  color: rgba(251,191,36,.3);
+}
+
+.path-card .path-tag {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--gold);
+  color: var(--gray-900);
+  font-size: .65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  letter-spacing: 1px;
+}
+
+.path-card .path-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.path-card h4 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+  color: var(--gray-900);
+}
+
+.path-card .path-subtitle {
+  font-size: .8rem;
+  color: var(--gold-dark);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.path-card .path-desc {
+  font-size: .85rem;
+  color: var(--gray-500);
+  line-height: 1.5;
+}
+
+/* ===== Country Comparison Cards ===== */
+.country-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.country-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition);
+  border: 1px solid var(--gray-100);
+}
+
+.country-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.country-card .country-header {
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.country-card .country-flag {
+  font-size: 2rem;
+}
+
+.country-card .country-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--gray-900);
+}
+
+.country-card .country-tagline {
+  font-size: .8rem;
+  color: var(--gray-500);
+  margin-left: auto;
+  text-align: right;
+}
+
+.country-card .country-body {
+  padding: 20px 24px;
+}
+
+.country-card .country-fee {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.country-card .fee-amount {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.country-card .fee-label {
+  font-size: .8rem;
+  color: var(--gray-500);
+}
+
+.country-card .country-advantages {
+  margin-bottom: 12px;
+}
+
+.country-card .country-advantages li {
+  padding: 4px 0;
+  font-size: .85rem;
+  color: var(--gray-600);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.country-card .country-advantages li::before {
+  content: '✓';
+  color: var(--gold-dark);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.country-card .country-considerations {
+  margin-bottom: 16px;
+}
+
+.country-card .country-considerations li {
+  padding: 3px 0;
+  font-size: .8rem;
+  color: var(--gray-400);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.country-card .country-considerations li::before {
+  content: '·';
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+.country-card .country-audience {
+  padding: 10px 14px;
+  background: rgba(30,58,138,.04);
+  border-radius: 8px;
+  font-size: .82rem;
+  color: var(--gray-600);
+  line-height: 1.5;
+}
+
+/* ===== Career Path Section ===== */
+.career-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.career-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-md);
+  border-top: 4px solid var(--primary);
+  transition: all var(--transition);
+}
+
+.career-card.gold {
+  border-top-color: var(--gold);
+}
+
+.career-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.career-card .career-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.career-card h4 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.career-card .career-desc {
+  font-size: .88rem;
+  color: var(--gray-500);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.career-card .career-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.career-card .career-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--gray-50);
+  border-radius: 8px;
+  font-size: .85rem;
+}
+
+.career-card .career-item .ci-flag {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.career-card .career-item .ci-content {
+  flex: 1;
+}
+
+.career-card .career-item .ci-title {
+  font-weight: 700;
+  color: var(--gray-800);
+  font-size: .85rem;
+  margin-bottom: 2px;
+}
+
+.career-card .career-item .ci-detail {
+  color: var(--gray-500);
+  font-size: .8rem;
+  line-height: 1.4;
+}
+
+/* ===== Form Embed Container ===== */
+.form-embed-container {
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+}

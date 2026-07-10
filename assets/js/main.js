@@ -247,16 +247,20 @@
         var chatView = modal.querySelector('.chat-view');
         if (dualPanel) dualPanel.style.display = 'none';
         if (chatView) chatView.style.display = '';
-        // Set iframe src if not set
+        // Set iframe src if not set (fix: about:blank is truthy, must check explicitly)
         var iframe = chatView ? chatView.querySelector('iframe') : null;
-        if (iframe && !iframe.src) {
-          iframe.src = iframe.getAttribute('data-src');
+        if (iframe) {
+          var currentSrc = iframe.getAttribute('src') || '';
+          var dataSrc = iframe.getAttribute('data-src') || '';
+          if (currentSrc === 'about:blank' || currentSrc === '' || currentSrc === 'about:blank"') {
+            iframe.src = dataSrc;
+          }
         }
       });
     });
 
-    // Dual-panel: scan QR
-    document.querySelectorAll('[data-consult="scan"]').forEach(function (btn) {
+    // Dual-panel: scan QR (now: show Feishu form)
+    document.querySelectorAll('[data-consult="scan"], [data-consult="form"]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var modal = document.getElementById('consult-modal');
         if (!modal) return;
@@ -264,6 +268,17 @@
         var qrView = modal.querySelector('.qr-view');
         if (dualPanel) dualPanel.style.display = 'none';
         if (qrView) qrView.style.display = '';
+        // Load Feishu form iframe
+        var formFrame = qrView ? qrView.querySelector('#consult-form-frame') : null;
+        if (formFrame) {
+          var cur = formFrame.getAttribute('src') || '';
+          var url = formFrame.getAttribute('data-src') || '';
+          if (cur === 'about:blank' || cur === '' || !cur.startsWith('http')) {
+            if (url && url !== 'FEISHU_FORM_URL') {
+              formFrame.src = url;
+            }
+          }
+        }
       });
     });
 
@@ -283,16 +298,19 @@
         var modal = document.getElementById('assess-modal');
         if (modal) {
           openModal(modal);
-          // Load Feishu form iframe
+          // Load Feishu form iframe (fix: check src attribute, not .src property)
           var iframe = modal.querySelector('#feishu-form-frame');
-          if (iframe && !iframe.src.startsWith('http')) {
-            var formUrl = iframe.getAttribute('data-src');
-            if (formUrl && formUrl !== 'FEISHU_FORM_URL') {
-              iframe.src = formUrl;
-            } else {
-              // Fallback: redirect to OpenHex chat if form URL not configured
-              window.open('https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd', '_blank');
-              closeModal(modal);
+          if (iframe) {
+            var currentSrc = iframe.getAttribute('src') || '';
+            var formUrl = iframe.getAttribute('data-src') || '';
+            if (currentSrc === 'about:blank' || currentSrc === '' || !currentSrc.startsWith('http')) {
+              if (formUrl && formUrl !== 'FEISHU_FORM_URL') {
+                iframe.src = formUrl;
+              } else {
+                // Fallback: redirect to OpenHex chat if form URL not configured
+                window.open('https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd', '_blank');
+                closeModal(modal);
+              }
             }
           }
         }
