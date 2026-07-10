@@ -1,6 +1,6 @@
 /**
- * 星途 LumiPath · AI跨境规划顾问 · 聊天组件
- * 自包含聊天 UI + 流式 AI 回复
+ * 星途 LumiPath · AI跨境规划顾问 · 聊天组件 v2
+ * 自包含聊天 UI + 流式 AI 回复 + 智能线索收集
  * 无第三方依赖
  */
 (function () {
@@ -10,27 +10,49 @@
   var CONFIG = {
     // 部署 Cloudflare Worker 后，把 URL 填到这里
     apiEndpoint: '',
-    welcomeMessage: '您好！我是星途LumiPath的AI跨境规划顾问 🌟\n可以为您解答出国工作、留学升学、跨境旅游、移民、AI就业等方面的问题。\n\n请问您想咨询哪方面？可以直接打字，或点击下方快捷入口。',
-    quickReplies: [
-      { text: '出国工作签', value: '我想了解出国工作签证，有什么条件？' },
-      { text: '低龄升学', value: '我想了解低龄升学路径，不走高考能上名校吗？' },
-      { text: '跨境旅游', value: '我想了解跨境旅游服务' },
-      { text: '留学移民', value: '我想了解留学移民方案和费用' },
-      { text: 'AI转岗就业', value: '我想了解AI转岗课程和内推' },
-      { text: '费用咨询', value: '各项服务大概费用是多少？' }
-    ],
-    fallbackText: '感谢您的咨询！我是星途LumiPath的AI顾问，目前AI对话功能正在升级中。\n请扫描下方二维码添加顾问微信，获取一对一专业咨询 👇',
+    logoUrl: 'https://overseas-consultant.github.io/Yingxi/assets/images/logo.png',
     fallbackQR: 'https://overseas-consultant.github.io/Yingxi/assets/images/consultation-qr.png',
-    logoUrl: 'https://overseas-consultant.github.io/Yingxi/assets/images/logo.png'
+    // 线索收集完成标记
+    leadMarker: '[LEAD_COMPLETE]',
+    // 两种模式的配置
+    modes: {
+      consult: {
+        title: '星途 LumiPath 跨境规划顾问',
+        subtitle: 'AI智能对话 · 7×24小时在线',
+        welcome: '您好！我是星途LumiPath的AI跨境规划顾问 🌟\n\n可以为您解答出国工作、留学升学、跨境旅游、移民、AI就业等方面的问题。\n\n请问您想咨询哪方面？可以直接打字，或点击下方快捷入口。',
+        quickReplies: [
+          { text: '出国工作签', value: '我想了解出国工作签证，有什么条件？' },
+          { text: '低龄升学', value: '我想了解低龄升学路径，不走高考能上名校吗？' },
+          { text: '跨境旅游', value: '我想了解跨境旅游服务' },
+          { text: '留学移民', value: '我想了解留学移民方案和费用' },
+          { text: 'AI转岗就业', value: '我想了解AI转岗课程和内推' },
+          { text: '费用咨询', value: '各项服务大概费用是多少？' }
+        ]
+      },
+      assess: {
+        title: '星途 LumiPath 免费测评',
+        subtitle: 'AI智能测评 · 1分钟出结果',
+        welcome: '您好！欢迎来到星途LumiPath免费测评中心 🎯\n\n我将通过几个问题了解您的背景和需求，为您推荐最合适的跨境发展路径。\n\n请问您怎么称呼？',
+        quickReplies: [
+          { text: '想出国工作', value: '我想出国工作，帮我测评一下适合哪个国家' },
+          { text: '想出国留学', value: '我想出国留学，帮我测评一下适合什么学校' },
+          { text: '想移民', value: '我想了解移民路径，帮我测评一下' },
+          { text: '想转行AI', value: '我想转行AI方向，帮我测评一下适合什么岗位' }
+        ]
+      }
+    }
   };
 
   // ========== 状态 ==========
   var messages = [];
   var isWaiting = false;
+  var isLeadSubmitted = false;
+  var currentMode = 'consult';
   var modal = null;
   var messagesContainer = null;
   var inputElement = null;
   var sendButton = null;
+  var quickBar = null;
 
   // ========== 创建模态框 ==========
   function createModal() {
@@ -74,10 +96,10 @@
     var titleWrap = document.createElement('div');
     titleWrap.style.cssText = 'flex:1;min-width:0';
     var title = document.createElement('div');
-    title.textContent = '星途 LumiPath 跨境规划顾问';
+    title.id = 'lumipath-chat-title';
     title.style.cssText = 'color:#fff;font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
     var subtitle = document.createElement('div');
-    subtitle.textContent = 'AI智能对话 · 7×24小时在线';
+    subtitle.id = 'lumipath-chat-subtitle';
     subtitle.style.cssText = 'color:#8a9bb5;font-size:.72rem;margin-top:2px';
     titleWrap.appendChild(title);
     titleWrap.appendChild(subtitle);
@@ -113,7 +135,6 @@
       'flex-direction:column', 'gap:12px',
       'scrollbar-width:thin', 'scrollbar-color:#1a2a42 transparent'
     ].join(';');
-    // Webkit scrollbar
     var style = document.createElement('style');
     style.textContent = [
       '.lumipath-chat-messages::-webkit-scrollbar{width:5px}',
@@ -126,7 +147,7 @@
     document.head.appendChild(style);
 
     // ---- 快捷回复 ----
-    var quickBar = document.createElement('div');
+    quickBar = document.createElement('div');
     quickBar.style.cssText = [
       'display:flex', 'gap:8px', 'padding:8px 12px', 'overflow-x:auto',
       'flex-shrink:0', 'border-top:1px solid rgba(255,255,255,0.05)',
@@ -136,30 +157,6 @@
     var quickStyle = document.createElement('style');
     quickStyle.textContent = '.lumipath-quick-bar::-webkit-scrollbar{display:none}';
     document.head.appendChild(quickStyle);
-
-    CONFIG.quickReplies.forEach(function (item) {
-      var btn = document.createElement('button');
-      btn.textContent = item.text;
-      btn.style.cssText = [
-        'flex-shrink:0', 'padding:6px 14px', 'border-radius:20px',
-        'border:1px solid rgba(212,175,55,0.3)', 'background:rgba(212,175,55,0.08)',
-        'color:#d4af37', 'font-size:.75rem', 'cursor:pointer',
-        'white-space:nowrap', 'transition:all .2s'
-      ].join(';');
-      btn.onmouseenter = function () {
-        btn.style.background = 'rgba(212,175,55,0.2)';
-        btn.style.borderColor = 'rgba(212,175,55,0.6)';
-      };
-      btn.onmouseleave = function () {
-        btn.style.background = 'rgba(212,175,55,0.08)';
-        btn.style.borderColor = 'rgba(212,175,55,0.3)';
-      };
-      btn.onclick = function () {
-        sendMessage(item.value);
-        quickBar.style.display = 'none';
-      };
-      quickBar.appendChild(btn);
-    });
 
     // ---- 输入区域 ----
     var inputBar = document.createElement('div');
@@ -211,12 +208,9 @@
     dialog.appendChild(inputBar);
     overlay.appendChild(dialog);
 
-    // 点击遮罩关闭
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) hideModal();
     });
-
-    // ESC 关闭
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
         hideModal();
@@ -225,16 +219,65 @@
 
     document.body.appendChild(overlay);
     modal = overlay;
-
-    // 添加欢迎消息
-    appendMessage('ai', CONFIG.welcomeMessage);
-
     return modal;
   }
 
+  // ========== 设置模式 ==========
+  function setMode(mode) {
+    currentMode = mode || 'consult';
+    var modeConfig = CONFIG.modes[currentMode] || CONFIG.modes.consult;
+
+    // 更新标题
+    var titleEl = document.getElementById('lumipath-chat-title');
+    var subtitleEl = document.getElementById('lumipath-chat-subtitle');
+    if (titleEl) titleEl.textContent = modeConfig.title;
+    if (subtitleEl) subtitleEl.textContent = modeConfig.subtitle;
+
+    // 清空消息
+    messages = [];
+    isLeadSubmitted = false;
+    if (messagesContainer) messagesContainer.innerHTML = '';
+
+    // 添加欢迎消息
+    appendMessage('ai', modeConfig.welcome);
+
+    // 更新快捷回复
+    renderQuickReplies(modeConfig.quickReplies);
+  }
+
+  function renderQuickReplies(replies) {
+    if (!quickBar) return;
+    quickBar.innerHTML = '';
+    quickBar.style.display = 'flex';
+    replies.forEach(function (item) {
+      var btn = document.createElement('button');
+      btn.textContent = item.text;
+      btn.style.cssText = [
+        'flex-shrink:0', 'padding:6px 14px', 'border-radius:20px',
+        'border:1px solid rgba(212,175,55,0.3)', 'background:rgba(212,175,55,0.08)',
+        'color:#d4af37', 'font-size:.75rem', 'cursor:pointer',
+        'white-space:nowrap', 'transition:all .2s'
+      ].join(';');
+      btn.onmouseenter = function () {
+        btn.style.background = 'rgba(212,175,55,0.2)';
+        btn.style.borderColor = 'rgba(212,175,55,0.6)';
+      };
+      btn.onmouseleave = function () {
+        btn.style.background = 'rgba(212,175,55,0.08)';
+        btn.style.borderColor = 'rgba(212,175,55,0.3)';
+      };
+      btn.onclick = function () {
+        sendMessage(item.value);
+        quickBar.style.display = 'none';
+      };
+      quickBar.appendChild(btn);
+    });
+  }
+
   // ========== 显示/隐藏 ==========
-  function showModal() {
+  function showModal(mode) {
     createModal();
+    setMode(mode || 'consult');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     setTimeout(function () { inputElement.focus(); }, 100);
@@ -251,17 +294,14 @@
   function appendMessage(role, content) {
     var wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;flex-direction:column;animation:lumipath-fadein .3s ease';
-
     var bubble = document.createElement('div');
     var isUser = role === 'user';
-
     if (isUser) {
       wrap.style.alignItems = 'flex-end';
       bubble.style.cssText = [
         'max-width:80%', 'padding:10px 14px', 'border-radius:14px 14px 4px 14px',
         'background:linear-gradient(135deg,#d4af37,#b8941f)', 'color:#0a1628',
-        'font-size:.85rem', 'line-height:1.6', 'word-break:break-word',
-        'white-space:pre-wrap'
+        'font-size:.85rem', 'line-height:1.6', 'word-break:break-word', 'white-space:pre-wrap'
       ].join(';');
     } else {
       wrap.style.alignItems = 'flex-start';
@@ -271,29 +311,24 @@
         'line-height:1.6', 'word-break:break-word', 'white-space:pre-wrap'
       ].join(';');
     }
-
     bubble.textContent = content;
     wrap.appendChild(bubble);
     messagesContainer.appendChild(wrap);
     scrollToBottom();
-
     messages.push({ role: role, content: content });
     return bubble;
   }
 
-  // ========== 流式消息显示 ==========
+  // ========== 流式消息 ==========
   function createStreamingBubble() {
     var wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;flex-direction:column;animation:lumipath-fadein .3s ease;align-items:flex-start';
-
     var bubble = document.createElement('div');
     bubble.style.cssText = [
       'max-width:85%', 'padding:10px 14px', 'border-radius:14px 14px 14px 4px',
       'background:#1a2a42', 'color:#e0e6f0', 'font-size:.85rem',
       'line-height:1.6', 'word-break:break-word', 'white-space:pre-wrap'
     ].join(';');
-
-    // 打字指示器
     var indicator = document.createElement('div');
     indicator.style.cssText = 'display:flex;gap:4px;padding:4px 0';
     for (var i = 0; i < 3; i++) {
@@ -302,36 +337,120 @@
       indicator.appendChild(dot);
     }
     bubble.appendChild(indicator);
-
     wrap.appendChild(bubble);
     messagesContainer.appendChild(wrap);
     scrollToBottom();
-
+    var fullText = '';
     return {
       bubble: bubble,
       indicator: indicator,
       startStreaming: function () {
         if (bubble.contains(indicator)) bubble.removeChild(indicator);
         bubble.textContent = '';
+        fullText = '';
       },
       append: function (text) {
-        bubble.textContent += text;
+        fullText += text;
+        // 检查是否包含线索完成标记，如果有则不显示标记
+        var displayText = fullText.replace(CONFIG.leadMarker, '');
+        bubble.textContent = displayText;
         scrollToBottom();
       },
       done: function () {
         if (bubble.contains(indicator)) bubble.removeChild(indicator);
-        messages.push({ role: 'ai', content: bubble.textContent });
+        var finalText = fullText.replace(CONFIG.leadMarker, '');
+        messages.push({ role: 'ai', content: finalText });
+        // 检查是否包含线索完成标记
+        if (fullText.indexOf(CONFIG.leadMarker) !== -1 && !isLeadSubmitted) {
+          submitLead();
+        }
       }
     };
   }
 
-  // ========== Fallback（无 API 时） ==========
+  // ========== 提交线索 ==========
+  function submitLead() {
+    isLeadSubmitted = true;
+
+    // 禁用输入
+    inputElement.disabled = true;
+    sendButton.disabled = true;
+    sendButton.textContent = '已提交';
+    sendButton.style.opacity = '0.6';
+
+    // 显示提交中提示
+    var statusWrap = document.createElement('div');
+    statusWrap.style.cssText = 'display:flex;justify-content:center;padding:4px 0;animation:lumipath-fadein .3s ease';
+    var statusBubble = document.createElement('div');
+    statusBubble.style.cssText = 'background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:6px 16px;color:#d4af37;font-size:.75rem';
+    statusBubble.textContent = '正在提交您的信息...';
+    statusWrap.appendChild(statusBubble);
+    messagesContainer.appendChild(statusWrap);
+    scrollToBottom();
+
+    // 准备对话历史
+    var history = messages.map(function (m) {
+      return { role: m.role === 'user' ? 'user' : 'assistant', content: m.content };
+    });
+
+    // 提交到 Worker 的 /lead 接口
+    var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/lead' : '';
+
+    if (!apiUrl) {
+      // 没有 API，显示二维码 fallback
+      setTimeout(function () {
+        statusBubble.textContent = '信息已记录';
+        statusBubble.style.color = '#4ade80';
+        statusBubble.style.borderColor = 'rgba(74,222,128,0.3)';
+        showQRCode();
+      }, 800);
+      return;
+    }
+
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        history: history,
+        source: currentMode === 'assess' ? '免费测评' : '网站咨询'
+      })
+    }).then(function (response) {
+      return response.json();
+    }).then(function (data) {
+      statusBubble.textContent = '✓ 信息已提交，顾问将在24小时内联系您';
+      statusBubble.style.color = '#4ade80';
+      statusBubble.style.borderColor = 'rgba(74,222,128,0.3)';
+      showQRCode();
+    }).catch(function (err) {
+      statusBubble.textContent = '信息已记录，请扫码添加顾问微信';
+      statusBubble.style.color = '#4ade80';
+      showQRCode();
+    });
+  }
+
+  // ========== 显示二维码 ==========
+  function showQRCode() {
+    var qrWrap = document.createElement('div');
+    qrWrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0;animation:lumipath-fadein .3s ease';
+    var qrImg = document.createElement('img');
+    qrImg.src = CONFIG.fallbackQR;
+    qrImg.style.cssText = 'width:130px;height:130px;border-radius:12px;border:1px solid rgba(212,175,55,0.2)';
+    qrImg.onerror = function () { qrWrap.style.display = 'none'; };
+    var qrTip = document.createElement('div');
+    qrTip.textContent = '扫码添加顾问微信，获取专属方案';
+    qrTip.style.cssText = 'color:#8a9bb5;font-size:.72rem';
+    qrWrap.appendChild(qrImg);
+    qrWrap.appendChild(qrTip);
+    messagesContainer.appendChild(qrWrap);
+    scrollToBottom();
+  }
+
+  // ========== Fallback ==========
   function showFallback() {
     var stream = createStreamingBubble();
     setTimeout(function () {
       stream.startStreaming();
-      // 逐字显示
-      var text = CONFIG.fallbackText;
+      var text = '感谢您的咨询！我是星途LumiPath的AI顾问，目前AI对话功能正在升级中。\n请扫描下方二维码添加顾问微信，获取一对一专业咨询 👇';
       var i = 0;
       var timer = setInterval(function () {
         if (i < text.length) {
@@ -340,20 +459,7 @@
         } else {
           clearInterval(timer);
           stream.done();
-          // 显示二维码
-          var qrWrap = document.createElement('div');
-          qrWrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0;animation:lumipath-fadein .3s ease';
-          var qrImg = document.createElement('img');
-          qrImg.src = CONFIG.fallbackQR;
-          qrImg.style.cssText = 'width:140px;height:140px;border-radius:12px;border:1px solid rgba(212,175,55,0.2)';
-          qrImg.onerror = function () { qrWrap.style.display = 'none'; };
-          var qrTip = document.createElement('div');
-          qrTip.textContent = '扫码添加顾问微信';
-          qrTip.style.cssText = 'color:#8a9bb5;font-size:.72rem';
-          qrWrap.appendChild(qrImg);
-          qrWrap.appendChild(qrTip);
-          messagesContainer.appendChild(qrWrap);
-          scrollToBottom();
+          showQRCode();
           isWaiting = false;
           updateSendButton();
         }
@@ -361,8 +467,9 @@
     }, 600);
   }
 
-  // ========== 发送消息 ==========
+  // ========== 发送 ==========
   function handleSend() {
+    if (isLeadSubmitted) return;
     var text = inputElement.value.trim();
     if (!text || isWaiting) return;
     inputElement.value = '';
@@ -371,10 +478,9 @@
   }
 
   function sendMessage(text) {
-    if (isWaiting) return;
+    if (isWaiting || isLeadSubmitted) return;
     isWaiting = true;
     updateSendButton();
-
     appendMessage('user', text);
 
     if (!CONFIG.apiEndpoint) {
@@ -382,7 +488,6 @@
       return;
     }
 
-    // 调用 API，流式接收
     var stream = createStreamingBubble();
     var history = messages.map(function (m) {
       return { role: m.role === 'user' ? 'user' : 'assistant', content: m.content };
@@ -391,7 +496,11 @@
     fetch(CONFIG.apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: history })
+      body: JSON.stringify({
+        message: text,
+        history: history,
+        mode: currentMode
+      })
     }).then(function (response) {
       if (!response.ok) throw new Error('HTTP ' + response.status);
       var reader = response.body.getReader();
@@ -418,7 +527,7 @@
             stream.startStreaming();
             started = true;
           }
-          stream.append('\n\n（连接中断，请稍后重试，或扫码添加顾问微信咨询）');
+          stream.append('\n\n（连接中断，请稍后重试）');
           stream.done();
           isWaiting = false;
           updateSendButton();
@@ -426,7 +535,6 @@
       }
       read();
     }).catch(function (err) {
-      // 网络错误，走 fallback
       if (messagesContainer.contains(stream.bubble.parentElement)) {
         messagesContainer.removeChild(stream.bubble.parentElement);
       }
@@ -434,7 +542,7 @@
     });
   }
 
-  // ========== 辅助函数 ==========
+  // ========== 辅助 ==========
   function scrollToBottom() {
     requestAnimationFrame(function () {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -442,9 +550,16 @@
   }
 
   function updateSendButton() {
+    if (isLeadSubmitted) {
+      sendButton.style.opacity = '0.6';
+      sendButton.style.pointerEvents = 'none';
+      sendButton.textContent = '已提交';
+      return;
+    }
     sendButton.style.opacity = isWaiting ? '0.5' : '1';
     sendButton.style.pointerEvents = isWaiting ? 'none' : 'auto';
     sendButton.textContent = isWaiting ? '回复中' : '发送';
+    inputElement.disabled = false;
   }
 
   // ========== 暴露 API ==========
@@ -454,14 +569,14 @@
     config: CONFIG
   };
 
-  // ========== 自动绑定咨询按钮 ==========
+  // ========== 自动绑定 ==========
   function init() {
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
-      // 移除之前可能绑定的 onclick
       btn.onclick = null;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        showModal();
+        var action = btn.getAttribute('data-action');
+        showModal(action === 'assess' ? 'assess' : 'consult');
       });
     });
   }
