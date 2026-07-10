@@ -221,40 +221,13 @@
     });
 
     // ===== Consultation & Assessment button handler =====
-    // ALL consult/assess actions open OpenHex real-time chat popup
+    // ALL consult/assess actions open chat.html in a new tab
+    var CHAT_URL = 'https://overseas-consultant.github.io/Yingxi/chat.html';
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        var modal = document.getElementById('consult-modal');
-        if (modal) {
-          modal.style.visibility = 'visible';
-          modal.style.opacity = '1';
-          document.body.style.overflow = 'hidden';
-        }
+        window.open(CHAT_URL, '_blank');
       });
-    });
-
-    // Close chat popup
-    function closeChatModal() {
-      var modal = document.getElementById('consult-modal');
-      if (modal) {
-        modal.style.opacity = '0';
-        modal.style.visibility = 'hidden';
-        document.body.style.overflow = '';
-      }
-    }
-    // Close on background click
-    var chatModal = document.getElementById('consult-modal');
-    if (chatModal) {
-      chatModal.addEventListener('click', function (e) {
-        if (e.target === chatModal) closeChatModal();
-      });
-      var closeBtn = chatModal.querySelector('#chat-close-btn');
-      if (closeBtn) closeBtn.addEventListener('click', closeChatModal);
-    }
-    // ESC to close
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeChatModal();
     });
   }
 
