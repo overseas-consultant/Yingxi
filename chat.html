@@ -7,52 +7,23 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>星途LumiPath · AI跨境规划顾问</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a1628;color:#e0e6f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-/* Header */
-.chat-header{background:#0d1f35;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(212,175,55,0.15);flex-shrink:0}
-.chat-logo{width:36px;height:36px;flex-shrink:0;border-radius:8px;overflow:hidden}
+.chat-header{background:#0d1f35;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(212,175,55,0.15);flex-shrink:0}
+.chat-logo{width:32px;height:32px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#d4af37}
 .chat-logo img{width:100%;height:100%;object-fit:cover}
 .chat-info{flex:1;min-width:0}
-.chat-name{color:#fff;font-weight:600;font-size:.95rem;display:flex;align-items:center;gap:6px}
-.chat-title{color:#8a9bb5;font-size:.75rem}
-.chat-status{display:flex;align-items:center;gap:4px;color:#4ade80;font-size:.72rem}
+.chat-name{color:#fff;font-weight:600;font-size:.92rem}
+.chat-title{color:#8a9bb5;font-size:.72rem}
+.chat-status{display:flex;align-items:center;gap:4px;color:#4ade80;font-size:.7rem;flex-shrink:0}
 .chat-status::before{content:'';width:6px;height:6px;background:#4ade80;border-radius:50%}
-.header-btns{display:flex;gap:6px;flex-shrink:0}
-.share-btn{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.25);color:#d4af37;font-size:1.1rem;padding:6px 10px;border-radius:8px;cursor:pointer}
-.share-btn:hover{background:rgba(212,175,55,0.25)}
-/* Quick actions bar */
-.quick-bar{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;background:#0a1628;border-bottom:1px solid rgba(212,175,55,0.08)}
-.quick-bar::-webkit-scrollbar{height:0}
-.qa-btn{background:rgba(212,175,55,0.1);color:#d4af37;border:1px solid rgba(212,175,55,0.2);padding:6px 14px;border-radius:20px;font-size:.8rem;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
-.qa-btn:hover,.qa-btn:active{background:rgba(212,175,55,0.2)}
-/* AI iframe area */
 .chat-iframe-wrap{flex:1;position:relative;overflow:hidden}
 .chat-iframe-wrap iframe{width:100%;height:100%;border:none;display:block}
-/* Loading overlay */
-.iframe-loading{position:absolute;inset:0;background:#0a1628;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:5}
-.iframe-loading.hidden{display:none}
-.loading-spinner{width:36px;height:36px;border:3px solid rgba(212,175,55,0.15);border-top-color:#d4af37;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{color:#8a9bb5;font-size:.85rem}
-/* QR overlay */
-.qr-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;justify-content:center;align-items:center}
-.qr-overlay.active{display:flex}
-.qr-card{background:#0d1f35;border:1px solid rgba(212,175,55,0.2);border-radius:16px;padding:32px;text-align:center;max-width:320px;width:90%}
-.qr-card h3{color:#fff;margin-bottom:20px;font-size:1.1rem}
-.qr-card #qrcode{display:inline-block;background:#fff;padding:12px;border-radius:8px;margin-bottom:12px}
-.qr-card #qrcode img{display:block;max-width:180px}
-.qr-hint{color:#8a9bb5;font-size:.8rem;margin-bottom:16px}
-.qr-close-btn{background:rgba(212,175,55,0.15);color:#d4af37;border:1px solid rgba(212,175,55,0.2);padding:8px 24px;border-radius:8px;cursor:pointer;font-size:.85rem}
-/* Mobile */
 @media(max-width:480px){
-  .chat-header{padding:10px 12px}
-  .chat-name{font-size:.88rem}
-  .chat-title{font-size:.7rem}
-  .quick-bar{padding:8px 10px}
-  .qa-btn{font-size:.75rem;padding:5px 12px}
+  .chat-header{padding:8px 12px}
+  .chat-name{font-size:.85rem}
+  .chat-title{font-size:.68rem}
 }
 </style>
 </head>
@@ -64,94 +35,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </div>
   <div class="chat-info">
     <div class="chat-name">星途 LumiPath 跨境规划顾问</div>
-    <div class="chat-title">AI智能对话 · 6大业务线全覆盖</div>
+    <div class="chat-title">AI智能对话 · 7×24小时在线</div>
   </div>
   <div class="chat-status">在线</div>
-  <div class="header-btns">
-    <button class="share-btn" onclick="toggleQR()" title="分享二维码">📱</button>
-  </div>
-</div>
-
-<div class="quick-bar">
-  <button class="qa-btn" onclick="askAI('我想了解低龄升学路径，帮我规划一下')">🎓 低龄升学</button>
-  <button class="qa-btn" onclick="askAI('我想了解综合留学申请，本科或硕士')">📚 综合留学</button>
-  <button class="qa-btn" onclick="askAI('我想了解出国旅游定制服务')">✈️ 出国旅游</button>
-  <button class="qa-btn" onclick="askAI('我想了解AI转岗就业课程和内推')">🤖 AI就业</button>
-  <button class="qa-btn" onclick="askAI('我想了解出国务工和合法工作签证')">🏗️ 出国工作</button>
-  <button class="qa-btn" onclick="askAI('我想了解留学移民和拿绿卡的路径')">🏠 移民</button>
-  <button class="qa-btn" onclick="askAI('你们的服务怎么收费？价格多少？')">💰 价格咨询</button>
 </div>
 
 <div class="chat-iframe-wrap">
-  <div class="iframe-loading" id="iframeLoading">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">正在连接 AI 跨境规划顾问...</div>
-  </div>
-  <iframe id="chatFrame" src="https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6" allow="clipboard-write; microphone; camera; encrypted-media; autoplay; fullscreen" referrerpolicy="origin" allowfullscreen title="AI跨境规划顾问" style="width:100%;height:100%;border:none"></iframe>
+  <iframe src="https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6" 
+    allow="clipboard-write; microphone; camera; encrypted-media; autoplay; fullscreen" 
+    allowfullscreen 
+    title="AI跨境规划顾问">
+  </iframe>
 </div>
 
-<div class="qr-overlay" id="qrOverlay" onclick="toggleQR()">
-  <div class="qr-card" onclick="event.stopPropagation()">
-    <h3>扫码咨询跨境规划顾问</h3>
-    <div id="qrcode"></div>
-    <p class="qr-hint">扫描二维码，直接对话</p>
-    <button class="qr-close-btn" onclick="toggleQR()">关闭</button>
-  </div>
-</div>
-
-<script>
-var OPENHEX_URL = 'https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6';
-var iframeLoaded = false;
-
-// Load OpenHex agent into iframe
-function loadAgent() {
-  var frame = document.getElementById('chatFrame');
-  var loading = document.getElementById('iframeLoading');
-  frame.src = OPENHEX_URL;
-  frame.onload = function() {
-    iframeLoaded = true;
-    loading.classList.add('hidden');
-  };
-}
-
-// Quick action: focus the iframe so user can type
-function askAI(question) {
-  var frame = document.getElementById('chatFrame');
-  if (!iframeLoaded) {
-    loadAgent();
-  }
-  // Try to focus the iframe so user can interact
-  try { frame.contentWindow.focus(); } catch(e) {}
-  // Visual feedback: flash the button
-  event.target.style.background = 'rgba(212,175,55,0.35)';
-  setTimeout(function(){ event.target.style.background = ''; }, 300);
-}
-
-// Init
-loadAgent();
-
-// QR code
-var qrGenerated = false;
-function toggleQR() {
-  var overlay = document.getElementById("qrOverlay");
-  overlay.classList.toggle("active");
-  if (!qrGenerated && overlay.classList.contains("active")) {
-    var url = window.location.href;
-    if (url.indexOf("file://") === 0) {
-      document.getElementById("qrcode").innerHTML = '<p style="color:#0a1628;padding:20px;font-size:.85rem">请先部署到线上<br>再生成二维码</p>';
-    } else {
-      new QRCode(document.getElementById("qrcode"), {
-        text: url,
-        width: 180,
-        height: 180,
-        colorDark: "#0a1628",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.M
-      });
-    }
-    qrGenerated = true;
-  }
-}
-</script>
 </body>
 </html>
