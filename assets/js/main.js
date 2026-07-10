@@ -221,12 +221,71 @@
     });
 
     // ===== Consultation & Assessment button handler =====
-    // ALL consult/assess actions open chat.html in a new tab
-    var CHAT_URL = 'https://overseas-consultant.github.io/Yingxi/consult.html';
+    // Creates a modal with embedded iframe of chat.html
+    var CHAT_URL = 'https://overseas-consultant.github.io/Yingxi/chat.html';
+    
+    // Create chat modal if it doesn't exist
+    var chatModal = document.getElementById('chatModal');
+    if (!chatModal) {
+      chatModal = document.createElement('div');
+      chatModal.id = 'chatModal';
+      chatModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;';
+      
+      var chatWrapper = document.createElement('div');
+      chatWrapper.style.cssText = 'position:relative;width:100%;max-width:500px;height:80vh;max-height:700px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+      
+      var chatHeader = document.createElement('div');
+      chatHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#1a2a4a,#2563eb);color:#fff;flex-shrink:0;';
+      
+      var chatTitle = document.createElement('div');
+      chatTitle.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;';
+      chatTitle.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;"></span>跨境规划顾问';
+      
+      var chatClose = document.createElement('button');
+      chatClose.style.cssText = 'background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0 4px;line-height:1;';
+      chatClose.innerHTML = '&times;';
+      chatClose.addEventListener('click', function() {
+        chatModal.style.display = 'none';
+      });
+      
+      chatHeader.appendChild(chatTitle);
+      chatHeader.appendChild(chatClose);
+      
+      var iframeContainer = document.createElement('div');
+      iframeContainer.style.cssText = 'flex:1;overflow:hidden;';
+      
+      var chatIframe = document.createElement('iframe');
+      chatIframe.src = CHAT_URL;
+      chatIframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+      chatIframe.setAttribute('allow', 'clipboard-write');
+      chatIframe.setAttribute('title', '跨境规划顾问');
+      chatIframe.setAttribute('frameborder', '0');
+      
+      iframeContainer.appendChild(chatIframe);
+      
+      chatWrapper.appendChild(chatHeader);
+      chatWrapper.appendChild(iframeContainer);
+      
+      // Make wrapper a flex column
+      chatWrapper.style.display = 'flex';
+      chatWrapper.style.flexDirection = 'column';
+      
+      chatModal.appendChild(chatWrapper);
+      
+      // Close on backdrop click
+      chatModal.addEventListener('click', function(e) {
+        if (e.target === chatModal) {
+          chatModal.style.display = 'none';
+        }
+      });
+      
+      document.body.appendChild(chatModal);
+    }
+    
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        window.open(CHAT_URL, '_blank');
+        chatModal.style.display = 'flex';
       });
     });
   }
