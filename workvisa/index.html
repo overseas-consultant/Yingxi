@@ -26,9 +26,6 @@
         <a href="../travel/">跨境旅游</a>
         <a href="../workvisa/" class="active">出国工作</a>
         <a href="../chat.html">AI顾问</a>
-        <div class="navbar-cta">
-          <button class="btn btn-primary btn-sm" data-action="consult">免费咨询</button>
-        </div>
       </div>
       <button class="navbar-toggle" aria-label="菜单">
         <span></span><span></span><span></span>
@@ -385,45 +382,33 @@
 
   <!-- ===== Floating Consult Button ===== -->
   <div class="float-consult">
-    <button class="float-btn secondary" data-action="consult" title="在线咨询">
+    <button class="float-btn primary" data-action="consult" title="在线咨询">
       💬
       <span class="float-label">在线咨询</span>
     </button>
-    <button class="float-btn primary" data-action="assess" title="免费测评">
-      🎯
-      <span class="float-label">免费测评</span>
-      <span class="float-badge">9.9</span>
-    </button>
   </div>
 
-  <!-- ===== Consultation Modal ===== -->
+  <!-- ===== Consultation Modal (OpenHex Real-time Chat) ===== -->
   <div class="overlay" id="consult-modal">
-    <div class="modal">
+    <div class="modal" style="max-width:480px">
       <button class="modal-close" aria-label="关闭">✕</button>
-      <div class="dual-panel">
-        <div class="dual-panel-item" data-consult="online">
-          <div class="dp-icon">💬</div>
-          <div class="dp-title">页面在线聊</div>
-          <div class="dp-desc">与AI跨境规划顾问<br>实时对话</div>
+      <h3>在线咨询</h3>
+      <p class="modal-desc">与AI跨境规划顾问实时对话</p>
+      <div style="margin-top:16px">
+        <iframe
+          id="openhex-chat-frame"
+          data-src="https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd"
+          src="about:blank"
+          style="width:100%;height:520px;border:none;border-radius:8px;background:#f5f6f7"
+          title="AI跨境规划顾问"
+          allow="microphone; camera"
+          onload="this.dataset.loaded='1'"
+          onerror="this.dataset.failed='1'">
+        </iframe>
+        <div id="chat-fallback" style="display:none;text-align:center;padding:40px 20px">
+          <p style="color:var(--gray-500);margin-bottom:16px">如对话窗口未正常显示，请点击下方按钮直接进入对话</p>
+          <a href="https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd" target="_blank" class="btn btn-primary btn-lg">立即对话 →</a>
         </div>
-        <div class="dual-panel-item" data-consult="scan">
-          <div class="dp-icon">📱</div>
-          <div class="dp-title">手机扫码聊</div>
-          <div class="dp-desc">扫码后在手机上<br>与顾问对话</div>
-        </div>
-      </div>
-      <div class="chat-view" style="display:none">
-        <h3>在线咨询</h3>
-        <p class="modal-desc">与跨境规划顾问实时对话</p>
-        <div class="chat-container">
-          <iframe data-src="https://overseas-consultant.github.io/Yingxi/chat.html" src="about:blank" title="在线咨询"></iframe>
-        </div>
-      </div>
-      <div class="qr-view" style="display:none">
-        <h3>扫码咨询</h3>
-        <p class="modal-desc">使用手机扫描下方二维码</p>
-        <img src="../assets/images/consultation-qr.png" alt="跨境规划顾问二维码" class="qr-img">
-        <p class="qr-tip">扫码后在手机上与跨境规划顾问对话</p>
       </div>
     </div>
   </div>
@@ -439,22 +424,6 @@
     </div>
   </div>
 
-  <!-- ===== Assessment Modal (Feishu Form Embed) ===== -->
-  <div class="overlay" id="assess-modal">
-    <div class="modal" style="max-width:560px">
-      <button class="modal-close" aria-label="关闭">✕</button>
-      <h3>免费咨询登记</h3>
-      <p class="modal-desc">填写信息，AI顾问将为您量身定制方案</p>
-      <div class="form-embed-container" style="margin-top:16px">
-        <iframe
-          id="feishu-form-frame"
-          data-src="https://ucn37t4f7n7i.feishu.cn/share/base/form/shrcn6FMMriXZPpUYVWgtMEncOR"
-          src="about:blank"
-          style="width:100%;height:560px;border:none;border-radius:8px;background:#f5f6f7"
-          title="免费咨询登记">
-        </iframe>
-      </div>
-    </div>
-  </div><script src="../assets/js/main.js"></script>
+  <script src="../assets/js/main.js"></script>
 </body>
 </html>

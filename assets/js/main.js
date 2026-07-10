@@ -220,98 +220,31 @@
       }
     });
 
-    // ===== Consultation button handler ===== */
-    document.querySelectorAll('[data-action="consult"]').forEach(function (btn) {
+    // ===== Consultation & Assessment button handler =====
+    // ALL consult/assess actions open OpenHex real-time chat
+    var OPENHEX_URL = 'https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd';
+
+    document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         var modal = document.getElementById('consult-modal');
         if (modal) {
           openModal(modal);
-          // Reset to dual-panel view
-          var dualPanel = modal.querySelector('.dual-panel');
-          var chatView = modal.querySelector('.chat-view');
-          var qrView = modal.querySelector('.qr-view');
-          if (dualPanel) dualPanel.style.display = '';
-          if (chatView) chatView.style.display = 'none';
-          if (qrView) qrView.style.display = 'none';
-        }
-      });
-    });
-
-    // Dual-panel: online chat
-    document.querySelectorAll('[data-consult="online"]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var modal = document.getElementById('consult-modal');
-        if (!modal) return;
-        var dualPanel = modal.querySelector('.dual-panel');
-        var chatView = modal.querySelector('.chat-view');
-        if (dualPanel) dualPanel.style.display = 'none';
-        if (chatView) chatView.style.display = '';
-        // Set iframe src if not set (fix: about:blank is truthy, must check explicitly)
-        var iframe = chatView ? chatView.querySelector('iframe') : null;
-        if (iframe) {
-          var currentSrc = iframe.getAttribute('src') || '';
-          var dataSrc = iframe.getAttribute('data-src') || '';
-          if (currentSrc === 'about:blank' || currentSrc === '' || currentSrc === 'about:blank"') {
-            iframe.src = dataSrc;
-          }
-        }
-      });
-    });
-
-    // Dual-panel: scan QR (now: show Feishu form)
-    document.querySelectorAll('[data-consult="scan"], [data-consult="form"]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var modal = document.getElementById('consult-modal');
-        if (!modal) return;
-        var dualPanel = modal.querySelector('.dual-panel');
-        var qrView = modal.querySelector('.qr-view');
-        if (dualPanel) dualPanel.style.display = 'none';
-        if (qrView) qrView.style.display = '';
-        // Load Feishu form iframe
-        var formFrame = qrView ? qrView.querySelector('#consult-form-frame') : null;
-        if (formFrame) {
-          var cur = formFrame.getAttribute('src') || '';
-          var url = formFrame.getAttribute('data-src') || '';
-          if (cur === 'about:blank' || cur === '' || !cur.startsWith('http')) {
-            if (url && url !== 'FEISHU_FORM_URL') {
-              formFrame.src = url;
-            }
-          }
-        }
-      });
-    });
-
-    // ===== Payment button handler ===== */
-    document.querySelectorAll('[data-action="pay"]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        var modal = document.getElementById('payment-modal');
-        if (modal) openModal(modal);
-      });
-    });
-
-    // ===== Assessment button handler ===== */
-    document.querySelectorAll('[data-action="assess"]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        var modal = document.getElementById('assess-modal');
-        if (modal) {
-          openModal(modal);
-          // Load Feishu form iframe (fix: check src attribute, not .src property)
-          var iframe = modal.querySelector('#feishu-form-frame');
+          // Load OpenHex iframe
+          var iframe = modal.querySelector('#openhex-chat-frame');
+          var fallback = modal.querySelector('#chat-fallback');
           if (iframe) {
             var currentSrc = iframe.getAttribute('src') || '';
-            var formUrl = iframe.getAttribute('data-src') || '';
             if (currentSrc === 'about:blank' || currentSrc === '' || !currentSrc.startsWith('http')) {
-              if (formUrl && formUrl !== 'FEISHU_FORM_URL') {
-                iframe.src = formUrl;
-              } else {
-                // Fallback: redirect to OpenHex chat if form URL not configured
-                window.open('https://agent.openhex.tech/share/68dc3598cb6fdc11110aca6ca7d598cd', '_blank');
-                closeModal(modal);
-              }
+              iframe.src = OPENHEX_URL;
             }
+            // Check if iframe loaded successfully after 3 seconds
+            setTimeout(function() {
+              if (!iframe.dataset.loaded && !iframe.contentWindow) {
+                if (fallback) fallback.style.display = '';
+                iframe.style.display = 'none';
+              }
+            }, 3000);
           }
         }
       });
