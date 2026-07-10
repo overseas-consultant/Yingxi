@@ -221,15 +221,12 @@
     });
 
     // ===== Consultation & Assessment button handler =====
-    // Scroll to the embedded iframe consultation section
+    // Open the chat widget (bottom-right floating panel)
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        var section = document.getElementById('consult-section');
-        if (section) {
-          var offset = 70;
-          var top = section.getBoundingClientRect().top + window.pageYOffset - offset;
-          window.scrollTo({ top: top, behavior: 'smooth' });
+        if (window.ChatWidget && window.ChatWidget.open) {
+          window.ChatWidget.open();
         }
       });
     });
