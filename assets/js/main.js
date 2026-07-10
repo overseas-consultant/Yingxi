@@ -221,29 +221,40 @@
     });
 
     // ===== Consultation & Assessment button handler =====
-    // ALL consult/assess actions open OpenHex real-time chat
-    var OPENHEX_URL = 'https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6';
-
+    // ALL consult/assess actions open OpenHex real-time chat popup
     document.querySelectorAll('[data-action="consult"], [data-action="assess"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         var modal = document.getElementById('consult-modal');
         if (modal) {
-          openModal(modal);
-          // Hide loading overlay once iframe loads
-          var iframe = modal.querySelector('#openhex-chat-frame');
-          var loading = modal.querySelector('#chat-loading');
-          if (iframe && loading) {
-            iframe.onload = function() {
-              loading.style.display = 'none';
-            };
-            // Fallback: hide loading after 3s even if onload doesn't fire
-            setTimeout(function() {
-              if (loading) loading.style.display = 'none';
-            }, 3000);
-          }
+          modal.style.visibility = 'visible';
+          modal.style.opacity = '1';
+          document.body.style.overflow = 'hidden';
         }
       });
+    });
+
+    // Close chat popup
+    function closeChatModal() {
+      var modal = document.getElementById('consult-modal');
+      if (modal) {
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        document.body.style.overflow = '';
+      }
+    }
+    // Close on background click
+    var chatModal = document.getElementById('consult-modal');
+    if (chatModal) {
+      chatModal.addEventListener('click', function (e) {
+        if (e.target === chatModal) closeChatModal();
+      });
+      var closeBtn = chatModal.querySelector('#chat-close-btn');
+      if (closeBtn) closeBtn.addEventListener('click', closeChatModal);
+    }
+    // ESC to close
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeChatModal();
     });
   }
 
