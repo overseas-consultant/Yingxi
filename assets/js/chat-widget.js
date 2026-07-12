@@ -98,7 +98,8 @@
     feishuTableId: 'tblDJLF1SHgmSV2p',
     paymentQrUrl: '',
     pageType: pageType,
-    pageConfig: pageConfig
+    pageConfig: pageConfig,
+    openhexAgentUrl: 'https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6'
   };
 
   var messages = [];
@@ -522,6 +523,8 @@
       .lp-pay-notice { font-size:.75rem;color:#64748b;margin-top:8px;padding:8px 12px;background:#f8fafc;border-radius:8px; }
       .lp-pay-btn { width:100%;padding:12px;border:none;border-radius:10px;background:#1677ff;color:#fff;font-weight:600;font-size:.9rem;cursor:pointer;margin-top:16px;transition:opacity .2s; }
       .lp-pay-btn:hover { opacity:.9; }
+      .lp-pay-btn-primary { background:linear-gradient(135deg,#7c3aed,#a855f7);font-size:1rem;padding:14px; }
+      .lp-pay-btn-secondary { background:#f1f5f9;color:#64748b;font-size:.82rem;padding:10px;margin-top:8px; }
 
       /* ========== 留学深度测评增强样式 ========== */
       .lp-assess-progress-wrap { padding:0 20px 0;background:linear-gradient(135deg,#7c3aed,#a855f7);padding-bottom:14px; }
@@ -2074,7 +2077,40 @@
     document.body.style.overflow = 'hidden';
   }
 
-  // ========== 隐藏 ==========
+  // ========== 测评支付弹窗（支付后跳转AI智能体） ==========
+  function showAssessPayModal() {
+    createModal();
+    modal.innerHTML = '';
+    var qrUrl = getPaymentQrUrl();
+    var agentUrl = CONFIG.openhexAgentUrl;
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-pay-dialog';
+    dialog.innerHTML = `
+      <div class="lp-pay-header">
+        <div class="lp-pay-title">🧠 AI兴趣天赋测评 · ¥9.9</div>
+        <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
+      </div>
+      <div class="lp-pay-body">
+        <div class="lp-pay-tip">请使用支付宝扫描下方二维码支付 ¥9.9</div>
+        <div class="lp-qr-wrap">
+          <div class="lp-qr-recommend">支付 ¥9.9 开启AI测评</div>
+          <div class="lp-qr-notice">支持花呗 | 信用卡 | 分期付款</div>
+          <img class="lp-qr-img" src="${qrUrl}" alt="支付宝收款码" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div style="display:none;align-items:center;justify-content:center;width:200px;height:200px;margin:0 auto;background:#f1f5f9;border-radius:8px;color:#94a3b8;font-size:.8rem">收款码加载中</div>
+          <div class="lp-qr-brand">星途LumiPath</div>
+          <div class="lp-qr-alipay-logo">支付宝</div>
+        </div>
+        <div class="lp-pay-instructions">打开支付宝 → 扫一扫 → 对准上方二维码</div>
+        <div class="lp-pay-notice">支付完成后点击下方按钮，即可进入AI智能体开始测评<br>测评金可抵10000元签约服务费</div>
+        <button class="lp-pay-btn lp-pay-btn-primary" onclick="window.open('${agentUrl}','_blank')">✅ 我已支付，进入AI测评</button>
+        <button class="lp-pay-btn lp-pay-btn-secondary" onclick="window.open('alipays://platformapi/startapp?saId=10000007','_blank')">打开支付宝</button>
+      </div>
+    `;
+    modal.innerHTML = '';
+    modal.appendChild(dialog);
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
   function hideModal() {
     if (modal) {
       modal.classList.remove('show');
@@ -2096,6 +2132,7 @@
     show: function(mode) {
       if (mode === 'assess') showAssessModal();
       else if (mode === 'pay') showPayModal();
+      else if (mode === 'assess-pay') showAssessPayModal();
       else showConsultModal();
     },
     hide: hideModal,
@@ -2121,11 +2158,13 @@
       // 清除旧绑定
       btn.onclick = null;
       var action = btn.getAttribute('data-action');
-      if (action === 'consult' || action === 'assess' || action === 'pay') {
+      if (action === 'consult' || action === 'assess' || action === 'pay' || action === 'assess-pay') {
         btn.addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
-          if (action === 'pay') {
+          if (action === 'assess-pay') {
+            showAssessPayModal();
+          } else if (action === 'pay') {
             showPayModal();
           } else if (action === 'assess') {
             showAssessModal();
