@@ -99,7 +99,7 @@
     paymentQrUrl: '',
     pageType: pageType,
     pageConfig: pageConfig,
-    openhexAgentUrl: 'https://agent.openhex.tech/share/77cbf0929e8ab6034bc6b82ff1c9f3d6'
+    openhexAgentUrl: 'https://agent.openhex.tech/share/e835e195bdd0a0c1bd3b3943e609b72c'
   };
 
   var messages = [];
@@ -2102,7 +2102,7 @@
         </div>
         <div class="lp-pay-instructions">打开支付宝 → 扫一扫 → 对准上方二维码</div>
         <div class="lp-pay-notice">支付完成后点击下方按钮，即可进入AI智能体开始测评<br>测评金可抵10000元签约服务费</div>
-        <button class="lp-pay-btn lp-pay-btn-primary" onclick="window.open('${agentUrl}','_blank')">✅ 我已支付，进入AI测评</button>
+        <button class="lp-pay-btn lp-pay-btn-primary" onclick="window.open('${agentUrl}','_blank')">✅ 我已支付，进入AI兴趣天赋测评</button>
       </div>
     `;
     modal.innerHTML = '';
