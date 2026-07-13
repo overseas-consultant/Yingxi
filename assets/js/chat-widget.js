@@ -978,7 +978,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">AI兴趣天赋测评</div>
           <div class="lp-assess-sub">智能匹配专业方向 · 留学路径规划 · 个性化推荐</div>
@@ -987,7 +987,7 @@
       </div>
       <div class="lp-assess-body">
         <div class="lp-assess-intro">
-          <div class="lp-intro-icon">🌟</div>
+          <div class="lp-intro-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:32px;height:32px;object-fit:contain;"></div>
           <div class="lp-intro-title">发现你的留学方向</div>
           <div class="lp-intro-desc">通过${flatQs.length}道精心设计的问题，AI将基于你的兴趣、性格、能力和价值观，为你智能匹配最适合的专业方向与留学路径</div>
         </div>
@@ -1032,7 +1032,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div style="flex:1">
           <div class="lp-assess-title">AI兴趣天赋测评</div>
           <div class="lp-assess-sub">${stepInfo.icon} ${stepInfo.label} · 第 ${qIdx + 1} / ${totalQs} 题</div>
@@ -1186,7 +1186,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">AI兴趣天赋测评</div>
           <div class="lp-assess-sub">测评完成 · 个性化推荐报告</div>
@@ -1268,7 +1268,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">AI兴趣天赋测评</div>
           <div class="lp-assess-sub">报告提交成功</div>
@@ -1304,7 +1304,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">AI出国工作资格测评</div>
           <div class="lp-assess-sub">智能评估签证资格 · 匹配目标国家 · 海外就业规划</div>
@@ -1313,7 +1313,7 @@
       </div>
       <div class="lp-assess-body">
         <div class="lp-assess-intro">
-          <div class="lp-intro-icon">🌟</div>
+          <div class="lp-intro-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:32px;height:32px;object-fit:contain;"></div>
           <div class="lp-intro-title">评估你的出国工作资格</div>
           <div class="lp-intro-desc">通过6个维度的智能评估，AI将基于你的年龄、学历、工作经验、预算和技能，为你匹配最适合的出国工作路径与签证方案</div>
         </div>
@@ -1355,7 +1355,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div style="flex:1">
           <div class="lp-assess-title">AI出国工作资格测评</div>
           <div class="lp-assess-sub">${q.icon} ${q.label} · 第 ${qIdx + 1} / ${totalQs} 步</div>
@@ -1620,7 +1620,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">AI出国工作资格测评</div>
           <div class="lp-assess-sub">测评完成 · 签证资格评估报告</div>
@@ -1700,7 +1700,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">AI出国工作资格测评</div>
           <div class="lp-assess-sub">报告提交成功</div>
@@ -1746,7 +1746,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">${pageConfig.assessTitle}</div>
           <div class="lp-assess-sub">${pageConfig.assessSub}</div>
@@ -1755,7 +1755,7 @@
       </div>
       <div class="lp-assess-body">
         <div class="lp-assess-intro">
-          <div class="lp-intro-icon">🌟</div>
+          <div class="lp-intro-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:32px;height:32px;object-fit:contain;"></div>
           <div class="lp-intro-title">${pageConfig.assessIntroTitle}</div>
           <div class="lp-intro-desc">${pageConfig.assessIntroDesc}</div>
         </div>
@@ -1808,7 +1808,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">${pageConfig.assessTitle}</div>
           <div class="lp-assess-sub">Step 1 / 3 · ${stepCfg.title}</div>
@@ -1876,7 +1876,7 @@
 
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">${pageConfig.assessTitle}</div>
           <div class="lp-assess-sub">Step 2 / 3 · ${stepCfg.title}</div>
@@ -1938,7 +1938,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">${pageConfig.assessTitle}</div>
           <div class="lp-assess-sub">Step 3 / 3 · ${stepCfg.title}</div>
@@ -2024,7 +2024,7 @@
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
       <div class="lp-assess-header">
-        <div class="lp-assess-icon">🌟</div>
+        <div class="lp-assess-icon"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:48px;height:48px;object-fit:contain;"></div>
         <div>
           <div class="lp-assess-title">${pageConfig.assessTitle}</div>
           <div class="lp-assess-sub">测评完成</div>
@@ -2087,7 +2087,7 @@
     dialog.className = 'lp-dialog lp-pay-dialog';
     dialog.innerHTML = `
       <div class="lp-pay-header">
-        <div class="lp-pay-title">🌟 AI兴趣天赋测评 · ¥9.9</div>
+        <div class="lp-pay-title"><img src="/assets/images/assess-logo-final.png" alt="AI测评" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;"> AI兴趣天赋测评 · ¥9.9</div>
         <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
       </div>
       <div class="lp-pay-body">
