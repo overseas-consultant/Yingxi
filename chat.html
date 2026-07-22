@@ -14,7 +14,6 @@
     .msg.assistant{background:#fff;align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
     .msg.user{background:#1a1a2e;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
     .msg.error{background:#fff0f0;color:#c00;align-self:flex-start;font-size:13px}
-    .msg.notice{background:#f0f7ff;color:#1a1a2e;align-self:center;font-size:12px;border-radius:8px;padding:6px 12px}
     .input-area{display:flex;padding:10px;background:#fff;border-top:1px solid #eee;gap:8px;flex-shrink:0}
     .input-area input{flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:20px;font-size:14px;outline:none}
     .input-area input:focus{border-color:#1a1a2e}
@@ -38,8 +37,9 @@
   </div>
 
 <script>
-// ========== 部署后替换为你的 Worker URL ==========
-const WORKER = 'https://yingxi-agent.overseas-consultant.workers.dev';
+const API_KEY = 'mysta_b518bcb31b1f4b6e6c799ce6bfc75ed2fcfd90d1feb4591115e0415049332b17';
+const AGENT_ID = '44e53b50-35a5-4033-8b29-6ef993d27e3c';
+const BASE = 'https://api.openhex.tech';
 
 let conversationId = localStorage.getItem('yingxi_conv_id') || null;
 let loading = false;
@@ -77,88 +77,69 @@ function hideTyping() {
 async function send() {
   const msg = input.value.trim();
   if (!msg || loading) return;
-  
+
   loading = true;
   input.value = '';
   sendBtn.disabled = true;
-  
+
   addMsg('user', msg);
   const typingEl = showTyping();
   let replyDiv = null;
   let replyText = '';
-  
+
   try {
-    // POST to worker, worker returns SSE stream
-    const res = await fetch(`${WORKER}/api/chat`, {
+    const res = await fetch(`${BASE}/api/v2/conversations/send`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        message: msg,
-        conversationId: conversationId,
-      }),
+      headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, agentId: AGENT_ID, ...(conversationId ? { conversationId } : {}) }),
+    });
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    conversationId = data.conversationId;
+    localStorage.setItem('yingxi_conv_id', conversationId);
+
+    const qs = data.userEventId ? `?lastEventId=${encodeURIComponent(data.userEventId)}` : '?turns=1';
+    const sseRes = await fetch(`${BASE}/api/v2/conversations/${conversationId}/stream${qs}`, {
+      headers: { 'Authorization': `Bearer ${API_KEY}` },
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${res.status}`);
-    }
-
-    // Parse SSE stream
-    const reader = res.body.getReader();
+    const reader = sseRes.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = '';
+    let buf = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         try {
-          const event = JSON.parse(line.slice(6));
-          const raw = event.raw || {};
-
-          // Collect assistant text deltas
-          if (raw.type === 'assistant' && raw.message) {
-            const content = raw.message;
-            if (Array.isArray(content)) {
-              for (const block of content) {
-                if (block.type === 'text_delta' && block.text) {
-                  if (!replyDiv) {
-                    hideTyping();
-                    replyDiv = addMsg('assistant', '');
-                  }
-                  replyText += block.text;
+          const ev = JSON.parse(line.slice(6));
+          const r = ev.raw || {};
+          if (r.type === 'assistant' && r.message) {
+            const c = r.message;
+            if (Array.isArray(c)) {
+              for (const b of c) {
+                if ((b.type === 'text_delta' || b.type === 'text') && b.text) {
+                  if (!replyDiv) { hideTyping(); replyDiv = addMsg('assistant', ''); }
+                  replyText += b.text;
                   replyDiv.textContent = replyText;
                   msgs.scrollTop = msgs.scrollHeight;
                 }
               }
             }
           }
-
-          if (raw.type === 'result') break;
-        } catch (e) {}
+          if (r.type === 'result') break;
+        } catch(e){}
       }
     }
-
-    if (!replyDiv) {
-      hideTyping();
-      addMsg('assistant', 'Agent 已处理，但没有返回文本内容。');
-    } else if (sendData) {
-      conversationId = sendData.conversationId;
-      localStorage.setItem('yingxi_conv_id', conversationId);
-    }
-
+    if (!replyDiv) { hideTyping(); addMsg('assistant', 'Agent 已处理。'); }
   } catch (err) {
     hideTyping();
-    addMsg('error', err.message || '网络连接失败，请稍后重试');
-    console.error(err);
+    addMsg('error', err.message || '网络连接失败');
   }
-  
   loading = false;
   sendBtn.disabled = false;
   input.focus();
