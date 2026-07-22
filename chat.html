@@ -108,8 +108,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 // === API 配置 ===
 // 部署 Cloudflare Worker 后，将下面的 URL 替换为你的 Worker 地址
 // Worker 脚本见：openai-worker.js
-var API_ENDPOINT = 'https://chat-api.422941896.workers.dev';
-var API_ENABLED = true; // 部署 Worker 后改为 true
+var API_KEY = 'mysta_b518bcb31b1f4b6e6c799ce6bfc75ed2fcfd90d1feb4591115e0415049332b17';
+var AGENT_ID = '44e53b50-35a5-4033-8b29-6ef993d27e3c';
+var API_BASE = 'https://api.openhex.tech';
+var API_ENABLED = true;
+var conversationId = localStorage.getItem('yingxi_conv_id') || null
 var chatHistory = []; // 对话历史，保留最近10轮
 
 // === 问卷引擎 ===
@@ -324,13 +327,42 @@ function handleGeneral(input) {
 
 // === AI API 调用 ===
 function callAPI(message) {
-  return fetch(API_ENDPOINT, {
+  // POST to OpenHex, then wait for SSE reply
+  return fetch(API_BASE + '/api/v2/conversations/send', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: message, history: chatHistory })
+    headers: { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, agentId: AGENT_ID })
   }).then(function(r) {
     if (!r.ok) throw new Error('API error ' + r.status);
     return r.json();
+  }).then(function(data) {
+    conversationId = data.conversationId;
+    localStorage.setItem('yingxi_conv_id', conversationId);
+    var qs = data.userEventId ? '?lastEventId=' + encodeURIComponent(data.userEventId) : '?turns=1';
+    var ctrl = new AbortController();
+    var t = setTimeout(function(){ ctrl.abort(); }, 180000);
+    return fetch(API_BASE + '/api/v2/conversations/' + conversationId + '/stream' + qs, {
+      signal: ctrl.signal,
+      headers: { 'Authorization': 'Bearer ' + API_KEY }
+    }).then(function(r2) { return r2.text(); }).then(function(text) {
+      clearTimeout(t);
+      var reply = '';
+      text.split('\n').forEach(function(line) {
+        if (line.indexOf('data: ') !== 0) return;
+        try {
+          var ev = JSON.parse(line.substring(6));
+          var r = ev.raw || {};
+          if (r.type === 'stream_event' && r.event && r.event.delta && r.event.delta.text) {
+            reply += r.event.delta.text;
+          } else if (r.type === 'assistant' && r.message) {
+            (Array.isArray(r.message) ? r.message : [r.message]).forEach(function(b) {
+              if (b.text) reply += b.text;
+            });
+          }
+        } catch(e) {}
+      });
+      return { reply: reply || null };
+    });
   });
 }
 
