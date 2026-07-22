@@ -112,7 +112,9 @@ var API_KEY = 'mysta_b518bcb31b1f4b6e6c799ce6bfc75ed2fcfd90d1feb4591115e04150493
 var AGENT_ID = '44e53b50-35a5-4033-8b29-6ef993d27e3c';
 var API_BASE = 'https://api.openhex.tech';
 var API_ENABLED = true;
-var conversationId = localStorage.getItem('yingxi_conv_id') || null
+// v2：每个访客独立会话（send 带 source:'web_embed'，服务端不再复用共享会话）
+var CONV_KEY = 'yingxi_conv_id_v2';
+var conversationId = localStorage.getItem(CONV_KEY) || null
 var chatHistory = []; // 对话历史，保留最近10轮
 
 // === 问卷引擎 ===
@@ -326,51 +328,102 @@ function handleGeneral(input) {
 }
 
 // === AI API 调用 ===
-function callAPI(message) {
-  var body = { message: message };
-  // First message: pick the agent. Subsequent: reuse conversation.
-  if (conversationId) {
-    body.conversationId = conversationId;
-  } else {
-    body.targetAgentIds = [AGENT_ID];
-  }
-  
-  return fetch(API_BASE + '/api/v2/conversations/send', {
+// 流程与 @openhex-ai/agent-sdk 的 sendMessage 一致：
+// POST /send 后，从 userEventId 处增量读 SSE，收到 raw.type==='result' 即止。
+// 注意：/stream 是不会自动关闭的实时流，必须边读边解析，不能等流结束。
+async function callAPI(message) {
+  var data = await sendToAgent(message);
+  conversationId = data.conversationId;
+  localStorage.setItem(CONV_KEY, conversationId);
+
+  var reply = await pollTurn(data.conversationId, data.userEventId);
+  return { reply: reply || null };
+}
+
+// source:'web_embed' 让服务端为每次无 conversationId 的 send 新建会话，
+// 而不是复用"该用户+该Agent"的共享会话（webapp/wechat_mp 才复用）。
+// 会话归属记在浏览器 localStorage —— 即每个访客一个独立会话。
+async function sendToAgent(message) {
+  var body = { message: message, source: 'web_embed', senderName: '网站访客' };
+  if (conversationId) body.conversationId = conversationId;
+  else body.targetAgentIds = [AGENT_ID];
+
+  var r = await fetch(API_BASE + '/api/v2/conversations/send', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
-  }).then(function(r) {
-    if (!r.ok) throw new Error('API error ' + r.status);
-    return r.json();
-  }).then(function(data) {
-    conversationId = data.conversationId;
-    localStorage.setItem('yingxi_conv_id', conversationId);
-    var qs = data.userEventId ? '?lastEventId=' + encodeURIComponent(data.userEventId) : '?turns=1';
-    var ctrl = new AbortController();
-    var t = setTimeout(function(){ ctrl.abort(); }, 300000);
-    return fetch(API_BASE + '/api/v2/conversations/' + conversationId + '/stream' + qs, {
-      signal: ctrl.signal,
-      headers: { 'Authorization': 'Bearer ' + API_KEY }
-    }).then(function(r2) { return r2.text(); }).then(function(text) {
-      clearTimeout(t);
-      var reply = '';
-      text.split('\n').forEach(function(line) {
-        if (line.indexOf('data: ') !== 0) return;
-        try {
-          var ev = JSON.parse(line.substring(6));
-          var r = ev.raw || {};
-          if (r.type === 'stream_event' && r.event && r.event.delta && r.event.delta.text) {
-            reply += r.event.delta.text;
-          } else if (r.type === 'assistant' && r.message) {
-            (Array.isArray(r.message) ? r.message : [r.message]).forEach(function(b) {
-              if (b.text) reply += b.text;
-            });
-          }
-        } catch(e) {}
-      });
-      return { reply: reply || null };
-    });
   });
+  if (!r.ok && body.conversationId && r.status >= 400 && r.status < 500) {
+    // 本地存的会话已失效（被删/过期）：丢弃并新开一个
+    conversationId = null;
+    localStorage.removeItem(CONV_KEY);
+    return sendToAgent(message);
+  }
+  if (!r.ok) throw new Error('API error ' + r.status);
+  return r.json();
+}
+
+// 轮询 /messages 读取本轮结果。
+// 为什么不用 SSE /stream：消费者视图的 SSE 流会隐藏 Agent 侧错误事件
+// （如积分不足的 402），出错时流上永远等不到数据；/messages 是全量视图，
+// 成功回复和错误都看得到。首条消息要冷启动 Agent pod（可能几十秒），
+// 轮询会一直等到本轮出现终止事件或超时。
+async function pollTurn(convId, userEventId) {
+  var deadline = Date.now() + 300000;
+  while (Date.now() < deadline) {
+    await new Promise(function(res){ setTimeout(res, 2500); });
+    var r = await fetch(API_BASE + '/api/v2/conversations/' + convId + '/messages', {
+      headers: { 'Authorization': 'Bearer ' + API_KEY }
+    }).catch(function(){ return null; });
+    if (!r || !r.ok) continue;
+    var data = await r.json().catch(function(){ return null; });
+    if (!data || !data.entries) continue;
+    var replyParts = [], textParts = [];
+    var seenUser = !userEventId; // 没有游标就从头解析
+    for (var i = 0; i < data.entries.length; i++) {
+      var e = data.entries[i];
+      if (!seenUser) {
+        if (String(e.id) >= userEventId) seenUser = true; // 从本轮用户消息开始
+        else continue;
+      }
+      var rec = e.data || {};
+      rec.id = e.id;
+      if (collectRecord(rec, replyParts, textParts)) {
+        return pickReply(replyParts, textParts);
+      }
+    }
+  }
+  throw new Error('OpenHex: no reply before deadline');
+}
+
+// 返回 true 表示本轮结束（收到 result 事件）
+function collectRecord(rec, replyParts, textParts) {
+  var raw = rec.raw || {};
+  if (rec.sender !== 'assistant' && rec.sender !== 'agent') return false;
+  if (raw.kind === 'greeting') return false; // 建会话时的打招呼，不算回复
+  if (raw.type === 'result') {
+    if (raw.is_error || raw.subtype === 'error') {
+      throw new Error('OpenHex: ' + (raw.result || raw.errorKind || 'agent error'));
+    }
+    if (raw.subtype === 'success') return true;
+    // 不带 subtype 的裸 result（如 greeting 的终止符）：只有已收到内容才算结束
+    return replyParts.length > 0 || textParts.length > 0;
+  }
+  var msg = raw.message;
+  if (msg && typeof msg === 'object' && Array.isArray(msg.content)) {
+    msg.content.forEach(function(b) {
+      if (b.type === 'tool_use' && String(b.name || '').indexOf('respond_to_user') >= 0 && b.input && b.input.message) {
+        replyParts.push(b.input.message);
+      } else if (b.type === 'text' && b.text) {
+        textParts.push(b.text);
+      }
+    });
+  }
+  return false;
+}
+
+function pickReply(replyParts, textParts) {
+  return replyParts.length ? replyParts.join('\n\n') : textParts.join('');
 }
 
 function sendMessage() {
