@@ -102,6 +102,102 @@
     openhexAgentUrl: 'https://agent.openhex.tech/share/e835e195bdd0a0c1bd3b3943e609b72c'
   };
 
+  // ---- OpenHex Agent 直连（与 chat.html 同一链路）----
+  // CONFIG.apiEndpoint 为空时启用：消息直接发给 OpenHex Agent。
+  // source:'web_embed' 让服务端每次新建会话（不复用共享会话），
+  // 会话 id 存各访客自己的 localStorage —— 即每个访客独立对话。
+  // 出错（如积分不足）时由调用方回退到本地话术。
+  var OHX = {
+    base: 'https://api.openhex.tech',
+    key: 'mysta_b518bcb31b1f4b6e6c799ce6bfc75ed2fcfd90d1feb4591115e0415049332b17',
+    agentId: '44e53b50-35a5-4033-8b29-6ef993d27e3c',
+    convKey: 'yingxi_widget_conv_v1'
+  };
+
+  async function ohxTurn(message) {
+    var data = await ohxSend(message);
+    try { localStorage.setItem(OHX.convKey, data.conversationId); } catch (e) {}
+    var reply = await ohxPoll(data.conversationId, data.userEventId);
+    if (!reply) throw new Error('OpenHex: empty reply');
+    return reply;
+  }
+
+  async function ohxSend(message) {
+    var convId = null;
+    try { convId = localStorage.getItem(OHX.convKey); } catch (e) {}
+    var body = { message: message, source: 'web_embed', senderName: '网站访客' };
+    if (convId) body.conversationId = convId;
+    else body.targetAgentIds = [OHX.agentId];
+    var r = await fetch(OHX.base + '/api/v2/conversations/send', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + OHX.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok && body.conversationId && r.status >= 400 && r.status < 500) {
+      // 本地存的会话已失效：丢弃并新开一个
+      try { localStorage.removeItem(OHX.convKey); } catch (e) {}
+      return ohxSend(message);
+    }
+    if (!r.ok) throw new Error('API error ' + r.status);
+    return r.json();
+  }
+
+  // 轮询 /messages 读取本轮结果（消费者视图的 SSE 流会隐藏错误事件，
+  // /messages 全量视图成功与错误都看得到）。首条消息要冷启动 Agent
+  // pod，可能几十秒，轮询会一直等到本轮终止事件或超时。
+  async function ohxPoll(convId, userEventId) {
+    var deadline = Date.now() + 300000;
+    while (Date.now() < deadline) {
+      await new Promise(function(res) { setTimeout(res, 2500); });
+      var r = await fetch(OHX.base + '/api/v2/conversations/' + convId + '/messages', {
+        headers: { 'Authorization': 'Bearer ' + OHX.key }
+      }).catch(function() { return null; });
+      if (!r || !r.ok) continue;
+      var data = await r.json().catch(function() { return null; });
+      if (!data || !data.entries) continue;
+      var replyParts = [], textParts = [];
+      var seenUser = !userEventId;
+      for (var i = 0; i < data.entries.length; i++) {
+        var e = data.entries[i];
+        if (!seenUser) {
+          if (String(e.id) >= userEventId) seenUser = true;
+          else continue;
+        }
+        var rec = e.data || {};
+        if (ohxCollect(rec, replyParts, textParts)) {
+          return replyParts.length ? replyParts.join('\n\n') : textParts.join('');
+        }
+      }
+    }
+    throw new Error('OpenHex: no reply before deadline');
+  }
+
+  // 返回 true 表示本轮结束（收到 result 事件）
+  function ohxCollect(rec, replyParts, textParts) {
+    var raw = rec.raw || {};
+    if (rec.sender !== 'assistant' && rec.sender !== 'agent') return false;
+    if (raw.kind === 'greeting') return false; // 建会话时的打招呼，不算回复
+    if (raw.type === 'result') {
+      if (raw.is_error || raw.subtype === 'error') {
+        throw new Error('OpenHex: ' + (raw.result || raw.errorKind || 'agent error'));
+      }
+      if (raw.subtype === 'success') return true;
+      // 裸 result（如 greeting 终止符）：只有已收到内容才算结束
+      return replyParts.length > 0 || textParts.length > 0;
+    }
+    var msg = raw.message;
+    if (msg && typeof msg === 'object' && Array.isArray(msg.content)) {
+      msg.content.forEach(function(b) {
+        if (b.type === 'tool_use' && String(b.name || '').indexOf('respond_to_user') >= 0 && b.input && b.input.message) {
+          replyParts.push(b.input.message); // 真实回复气泡
+        } else if (b.type === 'text' && b.text) {
+          textParts.push(b.text); // 兜底（可能混有 Agent 收尾独白）
+        }
+      });
+    }
+    return false;
+  }
+
   var messages = [];
   var isWaiting = false;
   var isLeadSubmitted = false;
@@ -743,7 +839,21 @@
     appendMessage('user', text);
 
     if (!CONFIG.apiEndpoint) {
-      showFallback(text);
+      // 直连 OpenHex Agent；失败（积分不足/网络异常）回退本地话术+留资
+      var ohxStream = createStreamingBubble();
+      ohxTurn(text).then(function(reply) {
+        ohxStream.startStreaming();
+        ohxStream.append(reply);
+        ohxStream.done();
+        isWaiting = false;
+        updateSendButton();
+      }).catch(function(err) {
+        console.warn('[OpenHex] Agent 调用失败，回退本地话术:', err && err.message);
+        if (ohxStream.bubble.parentElement && messagesContainer.contains(ohxStream.bubble.parentElement)) {
+          messagesContainer.removeChild(ohxStream.bubble.parentElement);
+        }
+        showFallback(text);
+      });
       return;
     }
 

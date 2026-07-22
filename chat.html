@@ -451,7 +451,8 @@ function sendMessage() {
       addMsg(reply, "bot");
       chatHistory.push({ role: 'assistant', content: reply });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-    }).catch(function() {
+    }).catch(function(err) {
+      console.warn('[OpenHex] Agent 调用失败，回退本地话术:', err && err.message);
       removeTyping();
       handleGeneral(text);
     });
@@ -474,7 +475,8 @@ function sendQuick(label) {
       addMsg(reply, "bot");
       chatHistory.push({ role: 'assistant', content: reply });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-    }).catch(function() {
+    }).catch(function(err) {
+      console.warn('[OpenHex] Agent 调用失败，回退本地话术:', err && err.message);
       removeTyping();
       handleGeneral(label);
     });
