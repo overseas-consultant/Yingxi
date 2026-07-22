@@ -324,46 +324,13 @@ function handleGeneral(input) {
 
 // === AI API 调用 ===
 function callAPI(message) {
-  // Step 1: POST /send
-  return fetch(API_BASE + '/api/v2/conversations/send', {
+  return fetch(API_ENDPOINT, {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: message, agentId: AGENT_ID, conversationId: conversationId || undefined })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, history: chatHistory })
   }).then(function(r) {
     if (!r.ok) throw new Error('API error ' + r.status);
     return r.json();
-  }).then(function(data) {
-    conversationId = data.conversationId;
-    localStorage.setItem('yingxi_conv_id', conversationId);
-    // Step 2: SSE stream
-    var qs = data.userEventId ? '?lastEventId=' + encodeURIComponent(data.userEventId) : '?turns=1';
-    return fetch(API_BASE + '/api/v2/conversations/' + conversationId + '/stream' + qs, {
-      headers: { 'Authorization': 'Bearer ' + API_KEY },
-    }).then(function(sseRes) {
-      return sseRes.text().then(function(text) {
-        // Parse SSE events, extract assistant text
-        var reply = '';
-        var lines = text.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-          if (lines[i].indexOf('data: ') !== 0) continue;
-          try {
-            var ev = JSON.parse(lines[i].substring(6));
-            var raw = ev.raw || {};
-            if (raw.type === 'assistant' && raw.message) {
-              var blocks = raw.message;
-              if (Array.isArray(blocks)) {
-                for (var j = 0; j < blocks.length; j++) {
-                  if (blocks[j].text) reply += blocks[j].text;
-                }
-              } else if (typeof blocks === 'string') {
-                reply += blocks;
-              }
-            }
-          } catch(e) {}
-        }
-        return { reply: reply || 'Agent 已处理完毕。' };
-      });
-    });
   });
 }
 
