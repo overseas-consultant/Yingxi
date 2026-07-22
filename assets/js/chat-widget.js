@@ -527,6 +527,20 @@
       .lp-msg .lp-bubble { max-width:80%;padding:10px 14px;border-radius:14px;font-size:.85rem;line-height:1.6;word-break:break-word;white-space:pre-wrap; }
       .lp-msg.user .lp-bubble { background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border-radius:14px 14px 4px 14px; }
       .lp-msg.ai .lp-bubble { background:#fff;border:1px solid #e2e8f0;color:#334155;border-radius:14px 14px 14px 4px; }
+      .lp-bubble.lp-md { white-space:normal; }
+      .lp-bubble.lp-md .ohx-p { margin:0 0 8px; }
+      .lp-bubble.lp-md > :last-child { margin-bottom:0; }
+      .lp-bubble.lp-md .ohx-ul, .lp-bubble.lp-md .ohx-ol { margin:0 0 8px; padding-left:20px; }
+      .lp-bubble.lp-md li { margin:3px 0; }
+      .lp-bubble.lp-md .ohx-code { background:#eef2f7; padding:1px 5px; border-radius:4px; font-size:.85em; }
+      .lp-bubble.lp-md .ohx-pre { background:#f1f5f9; padding:10px 12px; border-radius:8px; overflow-x:auto; margin:0 0 8px; }
+      .lp-bubble.lp-md .ohx-pre code { background:none; padding:0; font-size:.82em; }
+      .lp-bubble.lp-md .ohx-h { margin:4px 0 8px; line-height:1.4; }
+      .lp-bubble.lp-md .ohx-h1, .lp-bubble.lp-md .ohx-h2 { font-size:1.05em; }
+      .lp-bubble.lp-md .ohx-h3, .lp-bubble.lp-md .ohx-h4, .lp-bubble.lp-md .ohx-h5, .lp-bubble.lp-md .ohx-h6 { font-size:.95em; }
+      .lp-bubble.lp-md .ohx-quote { border-left:3px solid #cbd5e1; padding-left:10px; margin:0 0 8px; color:#64748b; }
+      .lp-bubble.lp-md .ohx-hr { border:none; border-top:1px solid #e2e8f0; margin:8px 0; }
+      .lp-bubble.lp-md a { color:#4f46e5; }
 
       .lp-typing { display:flex;gap:4px;padding:6px 0; }
       .lp-typing span { width:7px;height:7px;background:#94a3b8;border-radius:50%;animation:lpBounce 1.4s infinite both; }
@@ -831,6 +845,171 @@
     sendMessage(text);
   }
 
+  // === Markdown 解析与渲染 ===
+  // 1:1 移植自 @openhex-ai/agent-sdk/react 的 Markdown 组件（官网同款渲染），
+  // 输出纯 DOM（textContent 构建，无 innerHTML），类名保持 ohx-* 一致。
+  function ohxMdSanitizeHref(href) {
+    var t = href.trim();
+    if (/^(https?:|mailto:)/i.test(t)) return t;
+    if (/^\/\//.test(t)) return 'https:' + t;
+    if (/^www\./i.test(t)) return 'https://' + t;
+    return null;
+  }
+  
+  var OHX_MD_INLINE = [
+    { type: 'code', re: /`([^`]+)`/ },
+    { type: 'bold', re: /\*\*([^*]+)\*\*/ },
+    { type: 'italic', re: /\*([^*\n]+)\*|_([^_\n]+)_/ },
+    { type: 'link', re: /\[([^\]]+)\]\(([^)\s]+)\)/ },
+    { type: 'url', re: /(https?:\/\/[^\s<]+[^\s<.,:;"')\]}]|www\.[^\s<]+[^\s<.,:;"')\]}])/ }
+  ];
+  
+  function ohxMdParseInline(input) {
+    var spans = [];
+    var rest = input;
+    while (rest.length > 0) {
+      var best = null;
+      for (var r = 0; r < OHX_MD_INLINE.length; r++) {
+        var rule = OHX_MD_INLINE[r];
+        var m = rule.re.exec(rest);
+        if (!m || m.index == null) continue;
+        if (best && m.index >= best.index) continue;
+        var span = null;
+        if (rule.type === 'code') span = { type: 'code', text: m[1] };
+        else if (rule.type === 'bold') span = { type: 'bold', text: m[1] };
+        else if (rule.type === 'italic') span = { type: 'italic', text: m[1] != null ? m[1] : m[2] };
+        else if (rule.type === 'link') {
+          var href = ohxMdSanitizeHref(m[2]);
+          span = href ? { type: 'link', text: m[1], href: href } : { type: 'text', text: m[0] };
+        } else {
+          var href2 = ohxMdSanitizeHref(m[1]);
+          span = href2 ? { type: 'link', text: m[1], href: href2 } : { type: 'text', text: m[0] };
+        }
+        if (span) best = { index: m.index, length: m[0].length, span: span };
+      }
+      if (!best) { spans.push({ type: 'text', text: rest }); break; }
+      if (best.index > 0) spans.push({ type: 'text', text: rest.slice(0, best.index) });
+      spans.push(best.span);
+      rest = rest.slice(best.index + best.length);
+    }
+    return spans;
+  }
+  
+  function ohxMdParse(input) {
+    var blocks = [];
+    var lines = input.replace(/\r\n/g, '\n').split('\n');
+    var i = 0;
+    var para = [];
+    function flushPara() {
+      if (para.length === 0) return;
+      var text = para.join('\n').trim();
+      if (text) blocks.push({ type: 'paragraph', spans: ohxMdParseInline(text) });
+      para = [];
+    }
+    var LIST_ITEM = /^\s*([-*+]|\d+[.)])\s+(.*)$/;
+    while (i < lines.length) {
+      var line = lines[i];
+      var fence = /^```(.*)$/.exec(line);
+      if (fence) {
+        flushPara();
+        var code = [];
+        i++;
+        while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; }
+        i++;
+        blocks.push({ type: 'code', text: code.join('\n') });
+        continue;
+      }
+      var trimmed = line.trim();
+      if (trimmed === '') { flushPara(); i++; continue; }
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) { flushPara(); blocks.push({ type: 'hr' }); i++; continue; }
+      var heading = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
+      if (heading) {
+        flushPara();
+        blocks.push({ type: 'heading', level: heading[1].length, spans: ohxMdParseInline(heading[2]) });
+        i++;
+        continue;
+      }
+      if (/^\s*>\s?/.test(line)) {
+        flushPara();
+        var quote = [];
+        while (i < lines.length && /^\s*>\s?/.test(lines[i])) { quote.push(lines[i].replace(/^\s*>\s?/, '')); i++; }
+        blocks.push({ type: 'blockquote', spans: ohxMdParseInline(quote.join('\n').trim()) });
+        continue;
+      }
+      var firstItem = LIST_ITEM.exec(line);
+      if (firstItem) {
+        flushPara();
+        var ordered = /\d/.test(firstItem[1]);
+        var start = ordered ? (parseInt(firstItem[1], 10) || 1) : 1;
+        var items = [];
+        while (i < lines.length) {
+          var mi = LIST_ITEM.exec(lines[i]);
+          if (mi) { items.push(ohxMdParseInline(mi[2])); i++; }
+          else if (lines[i].trim() !== '' && /^\s+\S/.test(lines[i]) && items.length > 0) {
+            var cont = ohxMdParseInline(' ' + lines[i].trim());
+            for (var k = 0; k < cont.length; k++) items[items.length - 1].push(cont[k]);
+            i++;
+          } else break;
+        }
+        blocks.push({ type: 'list', ordered: ordered, start: start, items: items });
+        continue;
+      }
+      para.push(line);
+      i++;
+    }
+    flushPara();
+    return blocks;
+  }
+  
+  function ohxMdRender(container, text) {
+    container.textContent = '';
+    function spansToFrag(spans) {
+      var frag = document.createDocumentFragment();
+      spans.forEach(function(s) {
+        var el;
+        if (s.type === 'code') { el = document.createElement('code'); el.className = 'ohx-code'; el.textContent = s.text; }
+        else if (s.type === 'bold') { el = document.createElement('strong'); el.textContent = s.text; }
+        else if (s.type === 'italic') { el = document.createElement('em'); el.textContent = s.text; }
+        else if (s.type === 'link') {
+          el = document.createElement('a');
+          el.href = s.href; el.target = '_blank'; el.rel = 'noopener noreferrer nofollow';
+          el.textContent = s.text;
+        } else { el = document.createTextNode(s.text); }
+        frag.appendChild(el);
+      });
+      return frag;
+    }
+    ohxMdParse(String(text || '')).forEach(function(b) {
+      var el;
+      if (b.type === 'code') {
+        el = document.createElement('pre'); el.className = 'ohx-pre';
+        var c = document.createElement('code'); c.textContent = b.text; el.appendChild(c);
+      } else if (b.type === 'heading') {
+        var lv = Math.min(6, Math.max(1, b.level));
+        el = document.createElement('h' + lv); el.className = 'ohx-h ohx-h' + lv;
+        el.appendChild(spansToFrag(b.spans));
+      } else if (b.type === 'hr') {
+        el = document.createElement('hr'); el.className = 'ohx-hr';
+      } else if (b.type === 'blockquote') {
+        el = document.createElement('blockquote'); el.className = 'ohx-quote';
+        el.appendChild(spansToFrag(b.spans));
+      } else if (b.type === 'list') {
+        el = document.createElement(b.ordered ? 'ol' : 'ul');
+        el.className = b.ordered ? 'ohx-ol' : 'ohx-ul';
+        if (b.ordered) el.start = b.start;
+        b.items.forEach(function(spans) {
+          var li = document.createElement('li');
+          li.appendChild(spansToFrag(spans));
+          el.appendChild(li);
+        });
+      } else {
+        el = document.createElement('p'); el.className = 'ohx-p';
+        el.appendChild(spansToFrag(b.spans));
+      }
+      container.appendChild(el);
+    });
+  }
+
   function sendMessage(text) {
     if (isWaiting || isLeadSubmitted) return;
     if (quickBar) quickBar.style.display = 'none';
@@ -842,9 +1021,11 @@
       // 直连 OpenHex Agent；失败（积分不足/网络异常）回退本地话术+留资
       var ohxStream = createStreamingBubble();
       ohxTurn(text).then(function(reply) {
-        ohxStream.startStreaming();
-        ohxStream.append(reply);
-        ohxStream.done();
+        ohxStream.startStreaming(); // 移除打字点
+        ohxStream.bubble.classList.add('lp-md');
+        ohxMdRender(ohxStream.bubble, reply); // 官网同款 Markdown 渲染
+        messages.push({ role: 'ai', content: reply });
+        scrollToBottom();
         isWaiting = false;
         updateSendButton();
       }).catch(function(err) {
