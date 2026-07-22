@@ -14,6 +14,7 @@
     .msg.assistant{background:#fff;align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
     .msg.user{background:#1a1a2e;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
     .msg.error{background:#fff0f0;color:#c00;align-self:flex-start;font-size:13px}
+    .msg.notice{background:#f0f7ff;color:#1a1a2e;align-self:center;font-size:12px;border-radius:8px;padding:6px 12px}
     .input-area{display:flex;padding:10px;background:#fff;border-top:1px solid #eee;gap:8px;flex-shrink:0}
     .input-area input{flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:20px;font-size:14px;outline:none}
     .input-area input:focus{border-color:#1a1a2e}
@@ -37,9 +38,8 @@
   </div>
 
 <script>
-const API_KEY = 'mysta_b518bcb31b1f4b6e6c799ce6bfc75ed2fcfd90d1feb4591115e0415049332b17';
-const AGENT_ID = '44e53b50-35a5-4033-8b29-6ef993d27e3c';
-const BASE = 'https://api.openhex.tech';
+// ========== 部署后替换为你的 Worker URL ==========
+const WORKER = 'https://yingxi-agent.overseas-consultant.workers.dev';
 
 let conversationId = localStorage.getItem('yingxi_conv_id') || null;
 let loading = false;
@@ -88,56 +88,46 @@ async function send() {
   let replyText = '';
   
   try {
-    // Step 1: POST /send
-    const sendRes = await fetch(`${BASE}/api/v2/conversations/send`, {
+    // POST to worker, worker returns SSE stream
+    const res = await fetch(`${WORKER}/api/chat`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message: msg, agentId: AGENT_ID, ...(conversationId ? { conversationId } : {}) }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        message: msg,
+        conversationId: conversationId,
+      }),
     });
-    
-    if (!sendRes.ok) {
-      throw new Error(`API error ${sendRes.status}`);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
     }
-    
-    const sendData = await sendRes.json();
-    conversationId = sendData.conversationId;
-    localStorage.setItem('yingxi_conv_id', conversationId);
-    
-    // Step 2: SSE stream for reply
-    const streamUrl = `${BASE}/api/v2/conversations/${conversationId}/stream` +
-      (sendData.userEventId ? `?lastEventId=${encodeURIComponent(sendData.userEventId)}` : '?turns=1');
-    
-    const streamRes = await fetch(streamUrl, {
-      headers: { 'Authorization': `Bearer ${API_KEY}` },
-    });
-    
-    const reader = streamRes.body.getReader();
+
+    // Parse SSE stream
+    const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-    
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
+
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
-      
+
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         try {
           const event = JSON.parse(line.slice(6));
           const raw = event.raw || {};
-          
-          // Collect assistant text
+
+          // Collect assistant text deltas
           if (raw.type === 'assistant' && raw.message) {
             const content = raw.message;
             if (Array.isArray(content)) {
               for (const block of content) {
-                if (block.type === 'text' && block.text) {
+                if (block.type === 'text_delta' && block.text) {
                   if (!replyDiv) {
                     hideTyping();
                     replyDiv = addMsg('assistant', '');
@@ -149,21 +139,23 @@ async function send() {
               }
             }
           }
-          
-          // Turn complete
+
           if (raw.type === 'result') break;
         } catch (e) {}
       }
     }
-    
+
     if (!replyDiv) {
       hideTyping();
       addMsg('assistant', 'Agent 已处理，但没有返回文本内容。');
+    } else if (sendData) {
+      conversationId = sendData.conversationId;
+      localStorage.setItem('yingxi_conv_id', conversationId);
     }
-    
+
   } catch (err) {
     hideTyping();
-    addMsg('error', '网络连接失败，请稍后重试');
+    addMsg('error', err.message || '网络连接失败，请稍后重试');
     console.error(err);
   }
   
