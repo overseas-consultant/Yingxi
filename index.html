@@ -26,7 +26,7 @@
         <a href="study/">留学路径</a>
         <a href="travel/">跨境旅游</a>
         <a href="workvisa/">出国工作</a>
-        <a href="javascript:void(0)" data-action="consult">AI顾问</a>
+        <a href="javascript:void(0)" data-action="consult">AI就业顾问</a>
       </div>
       <button class="navbar-toggle" aria-label="菜单">
         <span></span><span></span><span></span>
@@ -50,8 +50,45 @@
       </div>
       <p style="color:rgba(255,255,255,.7);font-size:.9rem;margin-bottom:24px">新加坡跳板 · 名校直申 · 奖学金申请 · 个性化规划</p>
       <div class="btn-group">
-        <button class="btn btn-primary btn-lg" data-action="assess-pay">立即测评 <span class="price-tag-inline">¥9.9</span></button>
-        <button class="btn btn-ghost btn-lg" data-action="consult">在线咨询顾问</button>
+        <button class="btn btn-primary btn-lg" data-action="consult">立即咨询</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== 立即测评（免费AI就业测评） ===== -->
+  <section class="section" id="assess">
+    <div class="container">
+      <div class="section-title fade-in-up">
+        <span class="tag">AI就业测评</span>
+        <h2>免费AI就业测评，发现你的职业方向</h2>
+        <p class="subtitle">基于AI深度分析你的兴趣、能力和价值观，为你精准匹配最适合的留学路径和就业方向</p>
+      </div>
+      <div class="paths-grid">
+        <div class="path-card fade-in-up" style="cursor:pointer" onclick="window.LumiPathChat.show('assess')">
+          <div class="path-num">01</div>
+          <div class="path-icon">🧠</div>
+          <h4>兴趣天赋分析</h4>
+          <p class="path-subtitle">霍兰德职业兴趣模型</p>
+          <p class="path-desc">深度分析你的兴趣偏好与天赋倾向，精准定位职业方向</p>
+        </div>
+        <div class="path-card fade-in-up delay-1" style="cursor:pointer" onclick="window.LumiPathChat.show('assess')">
+          <div class="path-num">02</div>
+          <div class="path-icon">📊</div>
+          <h4>能力匹配评估</h4>
+          <p class="path-subtitle">学科成绩+技能评估</p>
+          <p class="path-desc">结合你的学业成绩和技能背景，评估适配专业方向</p>
+        </div>
+        <div class="path-card fade-in-up delay-2" style="cursor:pointer" onclick="window.LumiPathChat.show('assess')">
+          <div class="path-num">03</div>
+          <div class="path-icon">🎯</div>
+          <h4>个性化路径推荐</h4>
+          <p class="path-subtitle">AI智能匹配最佳方案</p>
+          <p class="path-desc">综合评估生成个性化留学路径和就业方向推荐报告</p>
+        </div>
+      </div>
+      <div class="text-center fade-in-up" style="margin-top:32px">
+        <button class="btn btn-primary btn-lg" data-action="assess">开始免费测评 →</button>
       </div>
     </div>
   </section>
@@ -578,9 +615,9 @@
       </div>
       <div class="pricing-grid">
         <div class="pricing-card fade-in-up">
-          <div class="price-name">AI测评</div>
-          <div class="price-amount">9.9<span class="unit">元</span></div>
-          <div class="price-desc">智能评估与选校推荐</div>
+          <div class="price-name">AI就业测评</div>
+          <div class="price-amount">免费<span class="unit"></span></div>
+          <div class="price-desc">智能评估与就业方向推荐</div>
           <div class="price-highlight">💡 测评金抵10000元签约金</div>
           <ul class="price-features">
             <li>AI兴趣天赋分析</li>
@@ -588,7 +625,7 @@
             <li>院校推荐清单</li>
             <li>一对一顾问解读</li>
           </ul>
-          <button class="btn btn-secondary" data-action="assess-pay" style="width:100%">立即测评 ¥9.9</button>
+          <button class="btn btn-secondary" data-action="consult" style="width:100%">立即咨询</button>
         </div>
         <div class="pricing-card featured fade-in-up delay-1">
           <div class="price-tag">推荐</div>
@@ -637,7 +674,7 @@
           <a href="study/">留学路径</a>
           <a href="travel/">跨境旅游</a>
           <a href="workvisa/">出国工作</a>
-          <a href="javascript:void(0)" data-action="consult">AI顾问</a>
+          <a href="javascript:void(0)" data-action="consult">AI就业顾问</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -649,9 +686,9 @@
 
   <!-- ===== Floating Consult Button ===== -->
   <div class="float-consult">
-    <button class="float-btn" data-action="consult" title="在线咨询">
+    <button class="float-btn" data-action="consult" title="立即咨询">
       💬
-      <span class="float-label">在线咨询</span>
+      <span class="float-label">立即咨询</span>
     </button>
   </div>
 

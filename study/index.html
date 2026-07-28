@@ -25,7 +25,7 @@
         <a href="../study/" class="active">留学路径</a>
         <a href="../travel/">跨境旅游</a>
         <a href="../workvisa/">出国工作</a>
-        <a href="javascript:void(0)" data-action="consult">AI顾问</a>
+        <a href="javascript:void(0)" data-action="consult">AI就业顾问</a>
       </div>
       <button class="navbar-toggle" aria-label="菜单">
         <span></span><span></span><span></span>
@@ -48,8 +48,39 @@
         <span class="hero-badge"><span class="dot"></span> AI赋能降本</span>
       </div>
       <div class="btn-group">
-        <button class="btn btn-primary btn-lg" data-action="assess-pay">立即测评 <span class="price-tag-inline">¥9.9</span></button>
-        <button class="btn btn-ghost btn-lg" data-action="consult">在线咨询顾问</button>
+        <button class="btn btn-primary btn-lg" data-action="consult">立即咨询</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== 立即测评（免费AI就业测评） ===== -->
+  <section class="section" id="assess">
+    <div class="container">
+      <div class="section-title fade-in-up">
+        <span class="tag">AI就业测评</span>
+        <h2>免费AI就业测评，发现你的职业方向</h2>
+        <p class="subtitle">基于AI深度分析你的兴趣、能力和价值观，精准匹配最适合的留学方向</p>
+      </div>
+      <div class="cards-grid cols-3">
+        <div class="card fade-in-up text-center" style="cursor:pointer" onclick="window.LumiPathChat.show('assess')">
+          <div class="card-icon" style="margin:0 auto 20px">🧠</div>
+          <h3>兴趣天赋分析</h3>
+          <p>基于霍兰德模型深度分析你的职业兴趣倾向，精准定位适配方向</p>
+        </div>
+        <div class="card fade-in-up delay-1 text-center" style="cursor:pointer" onclick="window.LumiPathChat.show('assess')">
+          <div class="card-icon gold" style="margin:0 auto 20px">📊</div>
+          <h3>能力匹配评估</h3>
+          <p>结合学业成绩与技能背景，评估最适合你的专业和院校层次</p>
+        </div>
+        <div class="card fade-in-up delay-2 text-center" style="cursor:pointer" onclick="window.LumiPathChat.show('assess')">
+          <div class="card-icon" style="margin:0 auto 20px">🎯</div>
+          <h3>个性化推荐</h3>
+          <p>AI综合评分生成留学路径推荐报告，帮你快速锁定最优方案</p>
+        </div>
+      </div>
+      <div class="text-center fade-in-up" style="margin-top:32px">
+        <button class="btn btn-primary btn-lg" data-action="assess">开始免费测评 →</button>
       </div>
     </div>
   </section>
@@ -474,7 +505,7 @@
       <div class="pricing-grid">
         <div class="pricing-card fade-in-up">
           <div class="price-name">AI测评</div>
-          <div class="price-amount">9.9<span class="unit">元</span></div>
+          <div class="price-amount">免费<span class="unit"></span></div>
           <div class="price-desc">智能评估与选校推荐</div>
           <div class="price-highlight">💡 测评金抵10000元签约金</div>
           <ul class="price-features">
@@ -483,7 +514,7 @@
             <li>选校方案建议</li>
             <li>专属测评报告</li>
           </ul>
-          <button class="btn btn-secondary" data-action="assess-pay" style="width:100%">立即测评 ¥9.9</button>
+          <button class="btn btn-secondary" data-action="assess" style="width:100%">免费测评 →</button>
         </div>
         <div class="pricing-card featured fade-in-up delay-1">
           <div class="price-tag">推荐</div>
@@ -530,7 +561,7 @@
           <a href="../study/">留学路径</a>
           <a href="../travel/">跨境旅游</a>
           <a href="../workvisa/">出国工作</a>
-          <a href="javascript:void(0)" data-action="consult">AI顾问</a>
+          <a href="javascript:void(0)" data-action="consult">AI就业顾问</a>
         </div>
       </div>
       <div class="footer-bottom">
