@@ -2535,16 +2535,9 @@ function showConsultModal(contextModule) {
           } else if (action === 'pay') {
             showPayModal();
           } else if (action === 'assess') {
-            // 兴趣测评：先选模块再进测评
-            showModulePicker(function(mod) {
-              if (mod === 'assess') { showAssessModal(); }
-              else { showConsultModal(mod); }
-            });
+            showAssessModal();
           } else {
-            // AI就业顾问：先选模块再进对话
-            showModulePicker(function(mod) {
-              showConsultModal(mod);
-            });
+            showConsultModal();
           }
         });
       }
