@@ -115,7 +115,16 @@
   };
 
   async function ohxTurn(message) {
-    var data = await ohxSend(message);
+    var data;
+    if (currentModuleContext && messages.length === 0) {
+      // First message: send module context
+      var ctxMsg = currentModuleContext === 'study' ? '用户正在咨询留学路径相关问题' :
+                   currentModuleContext === 'travel' ? '用户正在咨询跨境旅游相关问题' :
+                   currentModuleContext === 'work' ? '用户正在咨询出国工作相关问题' : '';
+      data = await ohxSend(ctxMsg + '\n\n用户问题：' + message);
+    } else {
+      data = await ohxSend(message);
+    }
     try { localStorage.setItem(OHX.convKey, data.conversationId); } catch (e) {}
     var reply = await ohxPoll(data.conversationId, data.userEventId);
     if (!reply) throw new Error('OpenHex: empty reply');
@@ -718,6 +727,13 @@
   }
 
   // ========== 创建模态框 ==========
+  function injectModuleStyles() {
+    if (document.getElementById('lp-module-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'lp-module-styles';
+    style.textContent = '.lp-module-dialog{max-width:520px;width:92%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15)}.lp-module-header{background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 24px 24px;position:relative;color:#fff}.lp-module-header .lp-close-btn{position:absolute;top:12px;right:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.lp-module-title{font-size:1.3rem;font-weight:700;margin-bottom:6px}.lp-module-sub{font-size:.85rem;opacity:0.9;padding-right:40px}.lp-module-body{padding:20px}.lp-module-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.lp-module-card{background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center}.lp-module-card:hover{border-color:#6366f1;background:#eef2ff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(99,102,241,0.15)}.lp-module-card:active{transform:translateY(0)}.lp-module-icon{font-size:2rem;margin-bottom:8px}.lp-module-name{font-weight:700;font-size:.95rem;color:#1e293b;margin-bottom:4px}.lp-module-desc{font-size:.75rem;color:#64748b;line-height:1.4}@media(max-width:400px){.lp-module-grid{grid-template-columns:1fr}}';
+    document.head.appendChild(style);
+  }
   function createModal() {
     if (modal) return modal;
     injectStyles();
@@ -750,7 +766,60 @@
   }
 
   // ========== 咨询模式 ==========
-  function showConsultModal() {
+  
+  // ========== 模块选择屏 ==========
+  function showModulePicker(callback) { injectModuleStyles();
+    createModal();
+    modal.innerHTML = '';
+    var dialog = document.createElement('div');
+    dialog.className = 'lp-dialog lp-module-dialog';
+    dialog.innerHTML = '<div class="lp-module-header">'
+      + '<div class="lp-module-title">🎯 请选择咨询方向</div>'
+      + '<div class="lp-module-sub">选择你感兴趣的方向，AI就业顾问将为你提供精准服务</div>'
+      + '<button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>'
+      + '</div>'
+      + '<div class="lp-module-body">'
+      + '<div class="lp-module-grid">'
+      + '<div class="lp-module-card" data-module="study">'
+      + '<div class="lp-module-icon">🎓</div>'
+      + '<div class="lp-module-name">留学路径</div>'
+      + '<div class="lp-module-desc">低分逆袭 · 名校直申 · 奖学金规划</div>'
+      + '</div>'
+      + '<div class="lp-module-card" data-module="travel">'
+      + '<div class="lp-module-icon">✈️</div>'
+      + '<div class="lp-module-name">跨境旅游</div>'
+      + '<div class="lp-module-desc">出境定制 · 入境接待 · 签证办理</div>'
+      + '</div>'
+      + '<div class="lp-module-card" data-module="work">'
+      + '<div class="lp-module-icon">🏗️</div>'
+      + '<div class="lp-module-name">出国工作</div>'
+      + '<div class="lp-module-desc">澳洲工签 · 雇主匹配 · 落地保障</div>'
+      + '</div>'
+      + '<div class="lp-module-card" data-module="assess">'
+      + '<div class="lp-module-icon">🧠</div>'
+      + '<div class="lp-module-name">兴趣测评</div>'
+      + '<div class="lp-module-desc">AI分析 · 专业匹配 · 方向推荐</div>'
+      + '</div>'
+      + '</div></div>';
+    modal.appendChild(dialog);
+    
+    // Bind clicks
+    dialog.querySelectorAll('.lp-module-card').forEach(function(card) {
+      card.onclick = function() {
+        var mod = this.getAttribute('data-module');
+        modal.classList.remove('show');
+        modal.innerHTML = '';
+        document.body.style.overflow = '';
+        callback(mod);
+      };
+    });
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+function showConsultModal(contextModule) {
+    currentModuleContext = contextModule || null;
     createModal();
     modal.innerHTML = '';
     var dialog = document.createElement('div');
@@ -780,9 +849,14 @@
     // 欢迎语
     var welcome = document.createElement('div');
     welcome.className = 'lp-welcome';
+    var welcomeText = pageConfig.welcomeText;
+    if (contextModule && contextModule !== 'assess') {
+      var moduleWelcomes = {'study':'你好！我是<b>AI就业顾问</b>👋<br>请告诉我你的留学意向，我来帮你规划最佳路径','travel':'你好！我是<b>AI就业顾问</b>👋<br>请告诉我你的旅行偏好，我来为你定制行程','work':'你好！我是<b>AI就业顾问</b>👋<br>请告诉我你的工作意向，我来帮你匹配海外机会'};
+      welcomeText = moduleWelcomes[contextModule] || pageConfig.welcomeText;
+    }
     welcome.innerHTML = `
       <div class="lp-welcome-avatar">🤖</div>
-      <div class="lp-welcome-bubble">${pageConfig.welcomeText}</div>
+      <div class="lp-welcome-bubble">${welcomeText}</div>
     `;
     messagesContainer.appendChild(welcome);
 
@@ -2457,9 +2531,16 @@
           } else if (action === 'pay') {
             showPayModal();
           } else if (action === 'assess') {
-            showAssessModal();
+            // 兴趣测评：先选模块再进测评
+            showModulePicker(function(mod) {
+              if (mod === 'assess') { showAssessModal(); }
+              else { showConsultModal(mod); }
+            });
           } else {
-            showConsultModal();
+            // AI就业顾问：先选模块再进对话
+            showModulePicker(function(mod) {
+              showConsultModal(mod);
+            });
           }
         });
       }
