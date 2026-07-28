@@ -25,12 +25,12 @@
       botSub: 'AI智能顾问 · 留学规划 · 选校推荐 · 实时答疑',
       welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI留学规划顾问，请选择您感兴趣的方向或直接提问',
       quickTopics: [
-        { icon: '🇸🇬', title: '新加坡跳板', desc: 'PSB+SIM双通道 · 低分逆袭进名校' },
-        { icon: '🎓', title: '名校直申', desc: '六国直申 · QS前300 · 奖学金全覆盖' },
-        { icon: '💰', title: '费用对比', desc: '四国费用明细 · 性价比分析 · 省钱方案' },
+        { icon: '🎓', title: '新加坡跳板', desc: '本科直升 · 硕士直申 · PSB Academy' },
+        { icon: '🎓', title: '名校直申', desc: '英国G5 · 澳洲八大 · 美国Top50' },
+        { icon: '💰', title: '费用与奖学金', desc: '四国费用对比 · 奖学金申请指南' },
         { icon: '📑', title: '签证与认证', desc: '签证政策 · 中留服认证 · 学历认可' },
         { icon: '✨', title: '个性规划', desc: 'AI测评 · 选校推荐 · 一对一咨询' },
-        { icon: '👶', title: '低龄留学', desc: '初高中提前布局 · 抢占名校名额' }
+        { icon: '🎓', title: '技能院校', desc: '就业导向 · 澳洲TAFE · 可移民' }
       ],
       assessTitle: 'AI兴趣天赋测评',
       assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
@@ -71,12 +71,12 @@
       botSub: 'AI智能顾问 · 合法工作签 · 海外就业 · 落地保障',
       welcomeText: '你好！我是<b>小达</b>👋<br>星途LumiPath AI出国工作顾问，请选择您感兴趣的方向或直接提问',
       quickTopics: [
-        { icon: '🇦🇺', title: '澳洲482工签', desc: '合法工作签 · 43岁内 · 8年社保' },
-        { icon: '📋', title: '签证条件评估', desc: '年龄/社保/技能 · 快速资格筛查' },
-        { icon: '🤝', title: '雇主匹配', desc: '一手澳洲雇主 · 建筑/IT/护理/厨师' },
-        { icon: '💰', title: '费用说明', desc: '全流程6.8万 · 透明定价 · 无隐藏' },
-        { icon: '✅', title: '成功案例', desc: '7年200+案例 · 98%通过率' },
-        { icon: '🏠', title: '落地保障', desc: '接机住宿 · 银行卡 · 手机卡' }
+        { icon: '🇦🇺', title: '澳洲工作签', desc: '合法工作签证 · 43岁内 · 8年社保' },
+        { icon: '🇬🇧', title: '英国工作签', desc: '工签办理 · 岗位匹配 · 合法合规' },
+        { icon: '🇪🇺', title: '欧洲工作签', desc: '多国可选 · 签证政策 · 就业机会' },
+        { icon: '🇲🇾', title: '马来西亚', desc: '工作签证 · 低门槛 · 华人友好' },
+        { icon: '📋', title: '签证条件', desc: '年龄/社保/技能要求 · 资格评估' },
+        { icon: '🏠', title: '海外落地保障', desc: '接机住宿 · 银行卡 · 手机卡 · 就业指导' }
       ],
       assessTitle: 'AI出国工作资格测评',
       assessSub: '智能评估签证资格 · 匹配目标国家 · 海外就业规划',
@@ -163,16 +163,7 @@
   };
 
   async function ohxTurn(message) {
-    var data;
-    if (currentModuleContext && messages.length === 0) {
-      // First message: send module context
-      var ctxMsg = currentModuleContext === 'study' ? '用户正在咨询留学路径相关问题' :
-                   currentModuleContext === 'travel' ? '用户正在咨询跨境旅游相关问题' :
-                   currentModuleContext === 'work' ? '用户正在咨询出国工作相关问题' : '';
-      data = await ohxSend(ctxMsg + '\n\n用户问题：' + message);
-    } else {
-      data = await ohxSend(message);
-    }
+    var data = await ohxSend(message);
     try { localStorage.setItem(OHX.convKey, data.conversationId); } catch (e) {}
     var reply = await ohxPoll(data.conversationId, data.userEventId);
     if (!reply) throw new Error('OpenHex: empty reply');
@@ -775,13 +766,6 @@
   }
 
   // ========== 创建模态框 ==========
-  function injectModuleStyles() {
-    if (document.getElementById('lp-module-styles')) return;
-    var style = document.createElement('style');
-    style.id = 'lp-module-styles';
-    style.textContent = '.lp-module-dialog{max-width:520px;width:92%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15)}.lp-module-header{background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 24px 24px;position:relative;color:#fff}.lp-module-header .lp-close-btn{position:absolute;top:12px;right:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.lp-module-title{font-size:1.3rem;font-weight:700;margin-bottom:6px}.lp-module-sub{font-size:.85rem;opacity:0.9;padding-right:40px}.lp-module-body{padding:20px}.lp-module-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.lp-module-card{background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center}.lp-module-card:hover{border-color:#6366f1;background:#eef2ff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(99,102,241,0.15)}.lp-module-card:active{transform:translateY(0)}.lp-module-icon{font-size:2rem;margin-bottom:8px}.lp-module-name{font-weight:700;font-size:.95rem;color:#1e293b;margin-bottom:4px}.lp-module-desc{font-size:.75rem;color:#64748b;line-height:1.4}@media(max-width:400px){.lp-module-grid{grid-template-columns:1fr}}';
-    document.head.appendChild(style);
-  }
   function createModal() {
     if (modal) return modal;
     injectStyles();
@@ -814,60 +798,7 @@
   }
 
   // ========== 咨询模式 ==========
-  
-  // ========== 模块选择屏 ==========
-  function showModulePicker(callback) { injectModuleStyles();
-    createModal();
-    modal.innerHTML = '';
-    var dialog = document.createElement('div');
-    dialog.className = 'lp-dialog lp-module-dialog';
-    dialog.innerHTML = '<div class="lp-module-header">'
-      + '<div class="lp-module-title">🎯 请选择咨询方向</div>'
-      + '<div class="lp-module-sub">选择你感兴趣的方向，AI就业顾问将为你提供精准服务</div>'
-      + '<button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>'
-      + '</div>'
-      + '<div class="lp-module-body">'
-      + '<div class="lp-module-grid">'
-      + '<div class="lp-module-card" data-module="study">'
-      + '<div class="lp-module-icon">🎓</div>'
-      + '<div class="lp-module-name">留学路径</div>'
-      + '<div class="lp-module-desc">低分逆袭 · 名校直申 · 奖学金规划</div>'
-      + '</div>'
-      + '<div class="lp-module-card" data-module="travel">'
-      + '<div class="lp-module-icon">✈️</div>'
-      + '<div class="lp-module-name">跨境旅游</div>'
-      + '<div class="lp-module-desc">出境定制 · 入境接待 · 签证办理</div>'
-      + '</div>'
-      + '<div class="lp-module-card" data-module="work">'
-      + '<div class="lp-module-icon">🏗️</div>'
-      + '<div class="lp-module-name">出国工作</div>'
-      + '<div class="lp-module-desc">澳洲工签 · 雇主匹配 · 落地保障</div>'
-      + '</div>'
-      + '<div class="lp-module-card" data-module="assess">'
-      + '<div class="lp-module-icon">🧠</div>'
-      + '<div class="lp-module-name">兴趣测评</div>'
-      + '<div class="lp-module-desc">AI分析 · 专业匹配 · 方向推荐</div>'
-      + '</div>'
-      + '</div></div>';
-    modal.appendChild(dialog);
-    
-    // Bind clicks
-    dialog.querySelectorAll('.lp-module-card').forEach(function(card) {
-      card.onclick = function() {
-        var mod = this.getAttribute('data-module');
-        modal.classList.remove('show');
-        modal.innerHTML = '';
-        document.body.style.overflow = '';
-        callback(mod);
-      };
-    });
-    
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
-
-function showConsultModal(contextModule) {
-    currentModuleContext = contextModule || null;
+  function showConsultModal() {
     createModal();
     modal.innerHTML = '';
     var dialog = document.createElement('div');
@@ -897,14 +828,9 @@ function showConsultModal(contextModule) {
     // 欢迎语
     var welcome = document.createElement('div');
     welcome.className = 'lp-welcome';
-    var welcomeText = pageConfig.welcomeText;
-    if (contextModule && contextModule !== 'assess') {
-      var moduleWelcomes = {'study':'你好！我是<b>AI就业顾问</b>👋<br>请告诉我你的留学意向，我来帮你规划最佳路径','travel':'你好！我是<b>AI就业顾问</b>👋<br>请告诉我你的旅行偏好，我来为你定制行程','work':'你好！我是<b>AI就业顾问</b>👋<br>请告诉我你的工作意向，我来帮你匹配海外机会'};
-      welcomeText = moduleWelcomes[contextModule] || pageConfig.welcomeText;
-    }
     welcome.innerHTML = `
       <div class="lp-welcome-avatar">🤖</div>
-      <div class="lp-welcome-bubble">${welcomeText}</div>
+      <div class="lp-welcome-bubble">${pageConfig.welcomeText}</div>
     `;
     messagesContainer.appendChild(welcome);
 
@@ -2105,53 +2031,7 @@ function showConsultModal(contextModule) {
       } else {
         renderWorkAssessSuccess(nameInput.value.trim(), topCountriesText);
       }
-    
-    assess: {
-      botName: '小星',
-      botTitle: '兴趣测评顾问',
-      botSub: 'AI智能测评 · 兴趣分析 · 专业匹配 · 方向推荐',
-      welcomeText: '你好！我是<b>小星</b>🧠<br>星途LumiPath AI兴趣测评顾问，请选择你想了解的方向或直接开始测评',
-      quickTopics: [
-        { icon: '🔍', title: '兴趣探索', desc: '发现你真正热爱的领域' },
-        { icon: '💡', title: '爱好挖掘', desc: '从日常爱好中找到职业线索' },
-        { icon: '📈', title: '潜力评估', desc: 'AI分析你的潜在优势与天赋' },
-        { icon: '🎯', title: '专业选择', desc: '基于兴趣和能力的专业推荐' },
-        { icon: '🧬', title: '性格测试', desc: '了解性格如何影响职业选择' },
-        { icon: '🌟', title: '天赋发现', desc: '找到你独一无二的优势领域' }
-      ],
-      assessTitle: 'AI兴趣天赋测评',
-      assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
-      assessIntroTitle: '发现你的职业方向',
-      assessIntroDesc: '只需3步，AI将基于你的兴趣、学业背景和目标国家，为你生成个性化的专业方向推荐与留学路径建议',
-      assessSteps: [
-        { label: '✨ Step 1', title: '兴趣方向', q: '你对哪些领域感兴趣？' },
-        { label: '📖 Step 2', title: '学业背景', q: '你目前的教育情况？' },
-        { label: '🌐 Step 3', title: '目标国家', q: '你倾向哪些留学目的地？' }
-      ]
-    },
-    consult: {
-      botName: '小途',
-      botTitle: 'AI就业顾问',
-      botSub: 'AI智能顾问 · 全场景覆盖 · 7×24在线 · 完全免费',
-      welcomeText: '你好！我是<b>小途</b>🤖<br>星途LumiPath AI就业顾问，请选择你想咨询的方向',
-      quickTopics: [
-        { icon: '🌍', title: '海外就业', desc: '热门国家 · 紧缺岗位 · 真实机会' },
-        { icon: '📋', title: '签证办理', desc: '工作签条件 · 办理流程 · 通过率' },
-        { icon: '💼', title: '职业规划', desc: '技能匹配 · 发展方向 · 长期路径' },
-        { icon: '💰', title: '薪资行情', desc: '各国各行业真实收入与生活成本' },
-        { icon: '🎓', title: '海归发展', desc: '回国就业优势 · 政策支持 · 落户' },
-        { icon: '🔮', title: '前景预测', desc: 'AI分析行业趋势与个人发展空间' }
-      ],
-      assessTitle: 'AI就业方向测评',
-      assessSub: '智能分析 · 精准匹配 · 个性化推荐',
-      assessIntroTitle: '发现最适合你的方向',
-      assessIntroDesc: '告诉AI你的需求，我们将为你匹配最合适的服务方向',
-      assessSteps: [
-        { label: '🎯 Step 1', title: '你的需求', q: '你想了解哪个方向？' },
-        { label: '👤 Step 2', title: '你的背景', q: '简单介绍一下你的情况？' },
-        { label: '📊 Step 3', title: '你的偏好', q: '你对什么最看重？' }
-      ]
-    },};
+    };
   }
 
   function renderWorkAssessSuccess(userName, topCountries) {
@@ -2587,10 +2467,6 @@ function showConsultModal(contextModule) {
 
   // ========== 暴露 API ==========
   window.LumiPathChat = {
-    showConsult: function(mod) {
-      if (mod === 'assess') { showAssessModal(); }
-      else { showConsultModal(mod); }
-    },
     show: function(mode) {
       if (mode === 'assess') showAssessModal();
       else if (mode === 'pay') showPayModal();
