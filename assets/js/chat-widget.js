@@ -25,12 +25,12 @@
       botSub: 'AI智能顾问 · 留学规划 · 选校推荐 · 实时答疑',
       welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI留学规划顾问，请选择您感兴趣的方向或直接提问',
       quickTopics: [
-        { icon: '🎓', title: '新加坡跳板', desc: '本科直升 · 硕士直申 · PSB Academy' },
-        { icon: '🎓', title: '名校直申', desc: '英国G5 · 澳洲八大 · 美国Top50' },
-        { icon: '💰', title: '费用与奖学金', desc: '四国费用对比 · 奖学金申请指南' },
+        { icon: '🇸🇬', title: '新加坡跳板', desc: 'PSB+SIM双通道 · 低分逆袭进名校' },
+        { icon: '🎓', title: '名校直申', desc: '六国直申 · QS前300 · 奖学金全覆盖' },
+        { icon: '💰', title: '费用对比', desc: '四国费用明细 · 性价比分析 · 省钱方案' },
         { icon: '📑', title: '签证与认证', desc: '签证政策 · 中留服认证 · 学历认可' },
         { icon: '✨', title: '个性规划', desc: 'AI测评 · 选校推荐 · 一对一咨询' },
-        { icon: '🎓', title: '技能院校', desc: '就业导向 · 澳洲TAFE · 可移民' }
+        { icon: '👶', title: '低龄留学', desc: '初高中提前布局 · 抢占名校名额' }
       ],
       assessTitle: 'AI兴趣天赋测评',
       assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
@@ -71,12 +71,12 @@
       botSub: 'AI智能顾问 · 合法工作签 · 海外就业 · 落地保障',
       welcomeText: '你好！我是<b>小达</b>👋<br>星途LumiPath AI出国工作顾问，请选择您感兴趣的方向或直接提问',
       quickTopics: [
-        { icon: '🇦🇺', title: '澳洲工作签', desc: '合法工作签证 · 43岁内 · 8年社保' },
-        { icon: '🇬🇧', title: '英国工作签', desc: '工签办理 · 岗位匹配 · 合法合规' },
-        { icon: '🇪🇺', title: '欧洲工作签', desc: '多国可选 · 签证政策 · 就业机会' },
-        { icon: '🇲🇾', title: '马来西亚', desc: '工作签证 · 低门槛 · 华人友好' },
-        { icon: '📋', title: '签证条件', desc: '年龄/社保/技能要求 · 资格评估' },
-        { icon: '🏠', title: '海外落地保障', desc: '接机住宿 · 银行卡 · 手机卡 · 就业指导' }
+        { icon: '🇦🇺', title: '澳洲482工签', desc: '合法工作签 · 43岁内 · 8年社保' },
+        { icon: '📋', title: '签证条件评估', desc: '年龄/社保/技能 · 快速资格筛查' },
+        { icon: '🤝', title: '雇主匹配', desc: '一手澳洲雇主 · 建筑/IT/护理/厨师' },
+        { icon: '💰', title: '费用说明', desc: '全流程6.8万 · 透明定价 · 无隐藏' },
+        { icon: '✅', title: '成功案例', desc: '7年200+案例 · 98%通过率' },
+        { icon: '🏠', title: '落地保障', desc: '接机住宿 · 银行卡 · 手机卡' }
       ],
       assessTitle: 'AI出国工作资格测评',
       assessSub: '智能评估签证资格 · 匹配目标国家 · 海外就业规划',
@@ -94,12 +94,12 @@
       botSub: 'AI智能测评 · 兴趣分析 · 专业匹配 · 方向推荐',
       welcomeText: '你好！我是<b>小星</b>🧠<br>星途LumiPath AI兴趣测评顾问，请选择你想了解的方向或直接开始测评',
       quickTopics: [
-        { icon: '🧠', title: '兴趣天赋分析', desc: '霍兰德模型 · 职业兴趣 · 天赋倾向' },
+        { icon: '🧠', title: '兴趣天赋分析', desc: '霍兰德模型 · 12大学科门类' },
         { icon: '📊', title: '能力匹配评估', desc: '学业背景 · 技能分析 · 院校匹配' },
-        { icon: '🎯', title: '专业方向推荐', desc: '12大学科门类 · 50+细分方向' },
-        { icon: '🌍', title: '留学国家选择', desc: '六国对比 · 政策分析 · 费用预估' },
-        { icon: '💼', title: '就业前景分析', desc: '行业趋势 · 薪资水平 · 发展路径' },
-        { icon: '📝', title: '免费开始测评', desc: '3步完成 · AI分析 · 个性化报告' }
+        { icon: '🎯', title: '个性化路径推荐', desc: 'AI评分 · 费用预估 · 时间规划' },
+        { icon: '📋', title: '测评流程', desc: '3步完成 · 填写→分析→报告' },
+        { icon: '🏫', title: '院校专业匹配', desc: 'QS排名 · 专业方向 · 录取要求' },
+        { icon: '▶️', title: '立即开始测评', desc: '免费测评 · AI智能分析' }
       ],
       assessTitle: 'AI兴趣天赋测评',
       assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
@@ -121,8 +121,8 @@
         { icon: '✈️', title: '跨境旅游定制', desc: '出境入境 · 签证办理 · 行程规划' },
         { icon: '🏗️', title: '出国工作咨询', desc: '澳洲工签 · 雇主匹配 · 落地保障' },
         { icon: '🧠', title: '兴趣测评', desc: 'AI分析 · 专业匹配 · 方向推荐' },
-        { icon: '💰', title: '费用与预算', desc: '费用对比 · 省钱方案 · 性价比' },
-        { icon: '📋', title: '综合咨询', desc: '不确定方向？AI帮你梳理需求' }
+        { icon: '🤖', title: 'AI智能问答', desc: '7×24在线 · 即时响应 · 精准匹配' },
+        { icon: '💬', title: '开始咨询', desc: '不确定方向？AI帮你梳理' }
       ],
       assessTitle: 'AI就业方向测评',
       assessSub: '智能分析 · 精准匹配 · 个性化推荐',
@@ -2112,12 +2112,12 @@ function showConsultModal(contextModule) {
       botSub: 'AI智能测评 · 兴趣分析 · 专业匹配 · 方向推荐',
       welcomeText: '你好！我是<b>小星</b>🧠<br>星途LumiPath AI兴趣测评顾问，请选择你想了解的方向或直接开始测评',
       quickTopics: [
-        { icon: '🧠', title: '兴趣天赋分析', desc: '霍兰德模型 · 职业兴趣 · 天赋倾向' },
+        { icon: '🧠', title: '兴趣天赋分析', desc: '霍兰德模型 · 12大学科门类' },
         { icon: '📊', title: '能力匹配评估', desc: '学业背景 · 技能分析 · 院校匹配' },
-        { icon: '🎯', title: '专业方向推荐', desc: '12大学科门类 · 50+细分方向' },
-        { icon: '🌍', title: '留学国家选择', desc: '六国对比 · 政策分析 · 费用预估' },
-        { icon: '💼', title: '就业前景分析', desc: '行业趋势 · 薪资水平 · 发展路径' },
-        { icon: '📝', title: '免费开始测评', desc: '3步完成 · AI分析 · 个性化报告' }
+        { icon: '🎯', title: '个性化路径推荐', desc: 'AI评分 · 费用预估 · 时间规划' },
+        { icon: '📋', title: '测评流程', desc: '3步完成 · 填写→分析→报告' },
+        { icon: '🏫', title: '院校专业匹配', desc: 'QS排名 · 专业方向 · 录取要求' },
+        { icon: '▶️', title: '立即开始测评', desc: '免费测评 · AI智能分析' }
       ],
       assessTitle: 'AI兴趣天赋测评',
       assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
@@ -2139,8 +2139,8 @@ function showConsultModal(contextModule) {
         { icon: '✈️', title: '跨境旅游定制', desc: '出境入境 · 签证办理 · 行程规划' },
         { icon: '🏗️', title: '出国工作咨询', desc: '澳洲工签 · 雇主匹配 · 落地保障' },
         { icon: '🧠', title: '兴趣测评', desc: 'AI分析 · 专业匹配 · 方向推荐' },
-        { icon: '💰', title: '费用与预算', desc: '费用对比 · 省钱方案 · 性价比' },
-        { icon: '📋', title: '综合咨询', desc: '不确定方向？AI帮你梳理需求' }
+        { icon: '🤖', title: 'AI智能问答', desc: '7×24在线 · 即时响应 · 精准匹配' },
+        { icon: '💬', title: '开始咨询', desc: '不确定方向？AI帮你梳理' }
       ],
       assessTitle: 'AI就业方向测评',
       assessSub: '智能分析 · 精准匹配 · 个性化推荐',
