@@ -2493,6 +2493,10 @@ function showConsultModal(contextModule) {
 
   // ========== 暴露 API ==========
   window.LumiPathChat = {
+    showConsult: function(mod) {
+      if (mod === 'assess') { showAssessModal(); }
+      else { showConsultModal(mod); }
+    },
     show: function(mode) {
       if (mode === 'assess') showAssessModal();
       else if (mode === 'pay') showPayModal();
