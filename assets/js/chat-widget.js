@@ -14,6 +14,8 @@
   var pageType = 'study'; // 默认留学
   if (pagePath.indexOf('/travel/') !== -1) pageType = 'travel';
   else if (pagePath.indexOf('/workvisa/') !== -1) pageType = 'work';
+  else if (pagePath.indexOf('/assess/') !== -1) pageType = 'assess';
+  else if (pagePath.indexOf('/consult/') !== -1) pageType = 'consult';
 
   // 各页面配置
   var PAGE_CONFIGS = {
@@ -84,6 +86,52 @@
         { label: '👤 Step 1', title: '基本条件', q: '你的年龄和工作经验？' },
         { label: '💼 Step 2', title: '技能背景', q: '你的专业技能和社保情况？' },
         { label: '🌍 Step 3', title: '目标国家', q: '你倾向哪些工作目的地？' }
+      ]
+    },
+    assess: {
+      botName: '小星',
+      botTitle: '兴趣测评顾问',
+      botSub: 'AI智能测评 · 兴趣分析 · 专业匹配 · 方向推荐',
+      welcomeText: '你好！我是<b>小星</b>🧠<br>星途LumiPath AI兴趣测评顾问，请选择你想了解的方向或直接开始测评',
+      quickTopics: [
+        { icon: '🔍', title: '兴趣探索', desc: '发现你真正热爱的领域' },
+        { icon: '💡', title: '爱好挖掘', desc: '从日常爱好中找到职业线索' },
+        { icon: '📈', title: '潜力评估', desc: 'AI分析你的潜在优势与天赋' },
+        { icon: '🎯', title: '专业选择', desc: '基于兴趣和能力的专业推荐' },
+        { icon: '🧬', title: '性格测试', desc: '了解性格如何影响职业选择' },
+        { icon: '🌟', title: '天赋发现', desc: '找到你独一无二的优势领域' }
+      ],
+      assessTitle: 'AI兴趣天赋测评',
+      assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
+      assessIntroTitle: '发现你的职业方向',
+      assessIntroDesc: '只需3步，AI将基于你的兴趣和目标，为你生成个性化的方向推荐',
+      assessSteps: [
+        { label: '✨ Step 1', title: '兴趣方向', q: '你对哪些领域感兴趣？' },
+        { label: '📖 Step 2', title: '学业背景', q: '你目前的教育情况？' },
+        { label: '🌐 Step 3', title: '目标国家', q: '你倾向哪些留学目的地？' }
+      ]
+    },
+    consult: {
+      botName: '小途',
+      botTitle: 'AI就业顾问',
+      botSub: 'AI智能顾问 · 全场景覆盖 · 7×24在线 · 完全免费',
+      welcomeText: '你好！我是<b>小途</b>🤖<br>星途LumiPath AI就业顾问，请选择你想咨询的方向',
+      quickTopics: [
+        { icon: '🌍', title: '海外就业', desc: '热门国家 · 紧缺岗位 · 真实机会' },
+        { icon: '📋', title: '签证办理', desc: '工作签条件 · 办理流程 · 通过率' },
+        { icon: '💼', title: '职业规划', desc: '技能匹配 · 发展方向 · 长期路径' },
+        { icon: '💰', title: '薪资行情', desc: '各国各行业真实收入与生活成本' },
+        { icon: '🎓', title: '海归发展', desc: '回国就业优势 · 政策支持 · 落户' },
+        { icon: '🔮', title: '前景预测', desc: 'AI分析行业趋势与个人发展空间' }
+      ],
+      assessTitle: 'AI就业方向测评',
+      assessSub: '智能分析 · 精准匹配 · 个性化推荐',
+      assessIntroTitle: '发现最适合你的方向',
+      assessIntroDesc: '告诉AI你的需求，我们将为你匹配最合适的服务方向',
+      assessSteps: [
+        { label: '🎯 Step 1', title: '你的需求', q: '你想了解哪个方向？' },
+        { label: '👤 Step 2', title: '你的背景', q: '简单介绍一下你的情况？' },
+        { label: '📊 Step 3', title: '你的偏好', q: '你对什么最看重？' }
       ]
     }
   };
