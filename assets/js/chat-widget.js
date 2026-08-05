@@ -1,5 +1,6 @@
 /**
- * 星途 LumiPath · AI跨境规划顾问 · 聊天+测评+支付组件 v5
+ * 星途 LumiPath · AI跨境规划顾问 · 聊天+测评+支付组件 v5.1
+ * v5.1: 按页面类型差异化对话框内容（首页=业务模块/其余页=快捷话题+输入框）
  * 参照妙搭参考站设计：
  * - 咨询：白底卡片，蓝色头部，机器人头像，6个快捷入口，对话输入
  * - 测评：紫色头部，3步引导式，开始测评按钮
@@ -9,28 +10,43 @@
 (function () {
   'use strict';
 
-  // 检测当前页面类型
+  // 检测当前页面类型（决定快捷话题与测评题库，与 Agent 绑定是两件事）
   var pagePath = window.location.pathname;
   var pageType = 'study'; // 默认留学
   if (pagePath.indexOf('/travel/') !== -1) pageType = 'travel';
   else if (pagePath.indexOf('/workvisa/') !== -1) pageType = 'work';
-  else if (pagePath.indexOf('/assess/') !== -1) pageType = 'assess';
   else if (pagePath.indexOf('/consult/') !== -1) pageType = 'consult';
+  else if (pagePath.indexOf('/assess/') !== -1) pageType = 'assess';
+
+  // Agent 绑定来自 agent-routing.js（必须先于本文件加载）。
+  // 缺失时不静默降级成"全站一个 Agent"——那正是这次改造要消灭的状态，
+  // 悄悄退回去只会让人以为改好了。
+  var RT = window.LumiPathAgentRouting;
+  if (!RT) {
+    console.error('[LumiPath] agent-routing.js 未加载，Agent 路由不可用。请检查页面中 script 的引入顺序。');
+    return;
+  }
+  var pageRoute = RT.resolve(pagePath);
+  var pageAgentKey = RT.defaultAgentKeyOf(pagePath);
+
+  // 当前对话框正在对话的 Agent。首页可通过快捷入口切换，子页固定为本页 Agent，
+  // 单个按钮可用 data-agent 覆盖（如留学页的天赋测评卡）。
+  var currentAgentKey = pageAgentKey;
+  // 首页切进某个业务 Agent 后，不再重复显示 6 宫格入口
+  var suppressModuleGrid = false;
 
   // 各页面配置
   var PAGE_CONFIGS = {
     study: {
       botName: '小西',
-      botTitle: '咨询顾问',
-      botSub: 'AI智能顾问 · 留学规划 · 选校推荐 · 实时答疑',
-      welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI留学规划顾问，请选择您感兴趣的方向或直接提问',
+      botTitle: '留学规划顾问',
+      botSub: '留学规划 · 三大项目 · 选校推荐 · 实时答疑',
+      welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI留学规划顾问，请选择您感兴趣的留学方向或直接提问',
       quickTopics: [
-        { icon: '🎓', title: '新加坡跳板', desc: '本科直升 · 硕士直申 · PSB Academy' },
-        { icon: '🎓', title: '名校直申', desc: '英国G5 · 澳洲八大 · 美国Top50' },
-        { icon: '💰', title: '费用与奖学金', desc: '四国费用对比 · 奖学金申请指南' },
-        { icon: '📑', title: '签证与认证', desc: '签证政策 · 中留服认证 · 学历认可' },
-        { icon: '✨', title: '个性规划', desc: 'AI测评 · 选校推荐 · 一对一咨询' },
-        { icon: '🎓', title: '技能院校', desc: '就业导向 · 澳洲TAFE · 可移民' }
+        { icon: '🎓', title: 'PSB跳板', desc: 'SIM/PSB · 低门槛进QS前100' },
+        { icon: '📝', title: '高考直申', desc: '用高考成绩 · 不读预科' },
+        { icon: '🏆', title: 'QS前300', desc: '剑桥/NUS/港大/ANU' },
+        { icon: '🌍', title: '全球名校申请', desc: '本硕申请 · 美英加澳港' }
       ],
       assessTitle: 'AI兴趣天赋测评',
       assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
@@ -43,17 +59,17 @@
       ]
     },
     travel: {
-      botName: '小途',
-      botTitle: '旅游咨询顾问',
-      botSub: 'AI智能顾问 · 跨境旅游 · 定制行程 · 签证办理',
-      welcomeText: '你好！我是<b>小途</b>👋<br>星途LumiPath AI跨境旅游顾问，请选择您感兴趣的旅游方向或直接提问',
+      botName: '小西',
+      botTitle: '跨境旅游顾问',
+      botSub: 'AI智能顾问 · 跨境旅游 · 定制行程 · 品质出行',
+      welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI跨境旅游顾问，请选择您感兴趣的旅游方向或直接提问',
       quickTopics: [
-        { icon: '✈️', title: '出境旅游', desc: '国人出国 · 热门目的地 · 自由行/跟团' },
-        { icon: '🇨🇳', title: '入境旅游', desc: '海外游客来华 · 签证代办 · 中文导览' },
-        { icon: '📝', title: '签证办理', desc: '旅游签证 · 多国通办 · 快速出签' },
         { icon: '🗺️', title: '定制行程', desc: '一对一规划 · 深度游 · 私人定制' },
+        { icon: '🇨🇳', title: '海外游客来华', desc: '入境接待 · 中文导览 · 文化体验' },
+        { icon: '✈️', title: '出境旅游', desc: '热门目的地 · 自由行/跟团 · 品质出行' },
+        { icon: '🌍', title: '目的地推荐', desc: '按预算/兴趣/季节匹配最佳去处' },
         { icon: '💰', title: '费用预算', desc: '透明报价 · 无强制消费 · 性价比' },
-        { icon: '🛡️', title: '旅游保险', desc: '境外保险 · 安全保障 · 紧急救援' }
+        { icon: '📅', title: '行程规划', desc: '天数/交通/住宿/景点 · 全程安排' }
       ],
       assessTitle: 'AI旅游需求测评',
       assessSub: '智能匹配旅游方案 · 定制行程推荐 · 预算评估',
@@ -66,17 +82,17 @@
       ]
     },
     work: {
-      botName: '小达',
-      botTitle: '出国工作顾问',
-      botSub: 'AI智能顾问 · 合法工作签 · 海外就业 · 落地保障',
-      welcomeText: '你好！我是<b>小达</b>👋<br>星途LumiPath AI出国工作顾问，请选择您感兴趣的方向或直接提问',
+      botName: '小西',
+      botTitle: '海外工作顾问',
+      botSub: 'AI智能顾问 · 技术移民 · 海外工作 · 落地安家',
+      welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI海外工作顾问，请选择您感兴趣的方向或直接提问',
       quickTopics: [
-        { icon: '🇦🇺', title: '澳洲工作签', desc: '合法工作签证 · 43岁内 · 8年社保' },
-        { icon: '🇬🇧', title: '英国工作签', desc: '工签办理 · 岗位匹配 · 合法合规' },
-        { icon: '🇪🇺', title: '欧洲工作签', desc: '多国可选 · 签证政策 · 就业机会' },
-        { icon: '🇲🇾', title: '马来西亚', desc: '工作签证 · 低门槛 · 华人友好' },
-        { icon: '📋', title: '签证条件', desc: '年龄/社保/技能要求 · 资格评估' },
-        { icon: '🏠', title: '海外落地保障', desc: '接机住宿 · 银行卡 · 手机卡 · 就业指导' }
+        { icon: '🇦🇺', title: '189独立技术', desc: '永久居留 · 不需担保 · 全球通用' },
+        { icon: '🏘️', title: '190州担保', desc: '永久居留 · 州政府提名 · 加5分' },
+        { icon: '🌄', title: '491偏远地区', desc: '临时签证 · 州/亲属担保 · 转永居' },
+        { icon: '📊', title: 'EOI打分', desc: '年龄/学历/英语/工作经验 · 在线评估' },
+        { icon: '📋', title: '职业评估', desc: '职业评估机构 · 材料准备 · 流程指导' },
+        { icon: '✈️', title: '462打工度假', desc: '31岁内 · 一签二签 · 边工作边旅行' }
       ],
       assessTitle: 'AI出国工作资格测评',
       assessSub: '智能评估签证资格 · 匹配目标国家 · 海外就业规划',
@@ -88,11 +104,11 @@
         { label: '🌍 Step 3', title: '目标国家', q: '你倾向哪些工作目的地？' }
       ]
     },
+    // /assess/ 在 Cloudflare 上已被 _redirects 301 到首页，但 GitHub 仓库里
+    // 该页面仍在，且加载同一个 widget。保留这份配置，页面在任何 host 上被
+    // 访问到都是测评内容；身份文案由 AGENT_META.talent_assessment 提供，
+    // 所以这里不再重复 botName / botTitle / welcomeText。
     assess: {
-      botName: '小星',
-      botTitle: '兴趣测评顾问',
-      botSub: 'AI智能测评 · 兴趣分析 · 专业匹配 · 方向推荐',
-      welcomeText: '你好！我是<b>小星</b>🧠<br>星途LumiPath AI兴趣测评顾问，请选择你想了解的方向或直接开始测评',
       quickTopics: [
         { icon: '🔍', title: '兴趣探索', desc: '发现你真正热爱的领域' },
         { icon: '💡', title: '爱好挖掘', desc: '从日常爱好中找到职业线索' },
@@ -101,6 +117,7 @@
         { icon: '🧬', title: '性格测试', desc: '了解性格如何影响职业选择' },
         { icon: '🌟', title: '天赋发现', desc: '找到你独一无二的优势领域' }
       ],
+      welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI兴趣天赋测评顾问，请选择你想了解的方向或直接开始测评',
       assessTitle: 'AI兴趣天赋测评',
       assessSub: '智能匹配专业方向 · 留学路径规划 · 个性化推荐',
       assessIntroTitle: '发现你的职业方向',
@@ -112,17 +129,17 @@
       ]
     },
     consult: {
-      botName: '小途',
+      botName: '小西',
       botTitle: 'AI就业顾问',
-      botSub: 'AI智能顾问 · 全场景覆盖 · 7×24在线 · 完全免费',
-      welcomeText: '你好！我是<b>小途</b>🤖<br>星途LumiPath AI就业顾问，请选择你想咨询的方向',
+      botSub: 'AI智能顾问 · 转岗就业 · 技能提升 · 内推机会',
+      welcomeText: '你好！我是<b>小西</b>👋<br>星途LumiPath AI就业顾问，请选择你想咨询的方向或直接提问',
       quickTopics: [
-        { icon: '🌍', title: '海外就业', desc: '热门国家 · 紧缺岗位 · 真实机会' },
-        { icon: '📋', title: '签证办理', desc: '工作签条件 · 办理流程 · 通过率' },
-        { icon: '💼', title: '职业规划', desc: '技能匹配 · 发展方向 · 长期路径' },
-        { icon: '💰', title: '薪资行情', desc: '各国各行业真实收入与生活成本' },
-        { icon: '🎓', title: '海归发展', desc: '回国就业优势 · 政策支持 · 落户' },
-        { icon: '🔮', title: '前景预测', desc: 'AI分析行业趋势与个人发展空间' }
+        { icon: '🤖', title: 'AI技能课程', desc: '体系化课程 · 实战项目 · 快速上手' },
+        { icon: '🔄', title: '转岗咨询', desc: '零基础转AI · 路径规划 · 一对一指导' },
+        { icon: '📄', title: '简历评估', desc: 'AI简历优化 · 项目经历包装 · 面试辅导' },
+        { icon: '📊', title: 'AI测评', desc: '能力测评 · 技能诊断 · 学习方向推荐' },
+        { icon: '💰', title: '行业薪资', desc: 'AI岗位真实薪资 · 城市对比 · 涨薪空间' },
+        { icon: '🤝', title: '内推机会', desc: '合作企业内推 · 真实岗位 · offer保障' }
       ],
       assessTitle: 'AI就业方向测评',
       assessSub: '智能分析 · 精准匹配 · 个性化推荐',
@@ -137,6 +154,10 @@
   };
 
   var pageConfig = PAGE_CONFIGS[pageType] || PAGE_CONFIGS.study;
+  // 首页单独覆盖顾问名称
+  if (pagePath === '/' || pagePath === '/index.html') {
+    pageConfig = Object.assign({}, pageConfig, { botTitle: '全球发展规划顾问' });
+  }
 
   var CONFIG = {
     apiEndpoint: '',
@@ -146,36 +167,50 @@
     feishuTableId: 'tblDJLF1SHgmSV2p',
     paymentQrUrl: '',
     pageType: pageType,
-    pageConfig: pageConfig,
-    openhexAgentUrl: 'https://agent.openhex.tech/share/e835e195bdd0a0c1bd3b3943e609b72c'
+    pageConfig: pageConfig
+    // 原 openhexAgentUrl 已移除：它名字通用、值却固定是天赋测评 Agent 的分享页，
+    // 首页 6 个入口全指向它才造成了「点留学进测评」。Agent 绑定现在只认
+    // agent-routing.js，分享链接不再参与生产链路。
   };
 
-  // ---- OpenHex Agent 直连（与 chat.html 同一链路）----
+  // ---- OpenHex Agent 直连 ----
   // CONFIG.apiEndpoint 为空时启用：消息直接发给 OpenHex Agent。
   // source:'web_embed' 让服务端每次新建会话（不复用共享会话），
   // 会话 id 存各访客自己的 localStorage —— 即每个访客独立对话。
   // 出错（如积分不足）时由调用方回退到本地话术。
+  //
+  // agentId 不再写死：改造前全站共用一个 Agent + 一个会话 key，页面之间零隔离，
+  // 用户在留学页说的话会被带进旅游 Agent 的上下文。现在每轮都显式带上要说话的
+  // Agent，会话 key 也按 Agent 分区（见 agent-routing.js 的 convKeyOf）。
   var OHX = {
-    base: 'https://api.openhex.tech',
-    key: 'mysta_b518bcb31b1f4b6e6c799ce6bfc75ed2fcfd90d1feb4591115e0415049332b17',
-    agentId: '44e53b50-35a5-4033-8b29-6ef993d27e3c',
-    convKey: 'yingxi_widget_conv_v1'
+    base: RT.API.base,
+    key: RT.API.key
   };
 
-  async function ohxTurn(message) {
-    var data = await ohxSend(message);
-    try { localStorage.setItem(OHX.convKey, data.conversationId); } catch (e) {}
+  /**
+   * 跑完一轮对话。
+   *
+   * agentKey 由调用方在发起时锁定并一路传下去，不在中途读 currentAgentKey——
+   * 一轮要等几十秒，期间用户完全可能点别的快捷入口切走，那样回复会串到
+   * 另一个 Agent 的会话里。
+   */
+  async function ohxTurn(message, agentKey) {
+    var data = await ohxSend(message, agentKey);
+    try { localStorage.setItem(RT.convKeyOf(agentKey), data.conversationId); } catch (e) {}
     var reply = await ohxPoll(data.conversationId, data.userEventId);
     if (!reply) throw new Error('OpenHex: empty reply');
     return reply;
   }
 
-  async function ohxSend(message) {
+  async function ohxSend(message, agentKey) {
+    var agentId = RT.agentIdOf(agentKey);
+    if (!agentId) throw new Error('OpenHex: 未知 Agent ' + agentKey);
+    var convKey = RT.convKeyOf(agentKey);
     var convId = null;
-    try { convId = localStorage.getItem(OHX.convKey); } catch (e) {}
+    try { convId = localStorage.getItem(convKey); } catch (e) {}
     var body = { message: message, source: 'web_embed', senderName: '网站访客' };
     if (convId) body.conversationId = convId;
-    else body.targetAgentIds = [OHX.agentId];
+    else body.targetAgentIds = [agentId];
     var r = await fetch(OHX.base + '/api/v2/conversations/send', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + OHX.key, 'Content-Type': 'application/json' },
@@ -183,8 +218,8 @@
     });
     if (!r.ok && body.conversationId && r.status >= 400 && r.status < 500) {
       // 本地存的会话已失效：丢弃并新开一个
-      try { localStorage.removeItem(OHX.convKey); } catch (e) {}
-      return ohxSend(message);
+      try { localStorage.removeItem(convKey); } catch (e) {}
+      return ohxSend(message, agentKey);
     }
     if (!r.ok) throw new Error('API error ' + r.status);
     return r.json();
@@ -542,7 +577,7 @@
       /* 咨询弹窗 */
       .lp-chat-dialog { width:100%;max-width:440px;height:85vh;max-height:680px; }
       .lp-chat-header { background:linear-gradient(135deg,#4f46e5,#6366f1);padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0; }
-      .lp-chat-header .lp-bot-avatar { width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+      .lp-chat-header .lp-bot-avatar { width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden; }
       .lp-chat-header .lp-header-info { flex:1;min-width:0; }
       .lp-chat-header .lp-header-title { color:#fff;font-weight:700;font-size:1rem; }
       .lp-chat-header .lp-header-sub { color:rgba(255,255,255,.7);font-size:.72rem;margin-top:2px; }
@@ -558,9 +593,15 @@
       .lp-messages::-webkit-scrollbar-thumb { background:#cbd5e1;border-radius:3px; }
 
       .lp-welcome { display:flex;gap:10px;align-items:flex-start; }
-      .lp-welcome .lp-welcome-avatar { width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#6366f1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+      .lp-welcome .lp-welcome-avatar { width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#6366f1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden; }
       .lp-welcome .lp-welcome-bubble { background:#fff;border:1px solid #e2e8f0;border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:.85rem;color:#334155;line-height:1.6; }
       .lp-welcome .lp-welcome-bubble b { color:#4f46e5; }
+
+      .lp-module-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 4px; }
+      .lp-module-btn { display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none; }
+      .lp-module-btn:hover { border-color:#6366f1;background:#eef2ff;transform:translateY(-1px);box-shadow:0 2px 8px rgba(99,102,241,.12); }
+      .lp-module-btn .lp-mod-icon { font-size:1.4rem;line-height:1; }
+      .lp-module-btn .lp-mod-label { font-size:.72rem;font-weight:600;color:#334155;line-height:1.2; }
 
       .lp-quick-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 12px; }
       .lp-quick-item { background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .2s;text-align:left; }
@@ -768,7 +809,7 @@
     if (CONFIG.paymentQrUrl) return CONFIG.paymentQrUrl;
     // 自动检测路径（首页和子页面）
     var base = window.location.pathname;
-    if (base.indexOf('/study/') !== -1 || base.indexOf('/travel/') !== -1 || base.indexOf('/workvisa/') !== -1) {
+    if (base.indexOf('/study/') !== -1 || base.indexOf('/travel/') !== -1 || base.indexOf('/workvisa/') !== -1 || base.indexOf('/consult/') !== -1 || base.indexOf('/assess/') !== -1) {
       return '../assets/images/payment-qr.png';
     }
     return 'assets/images/payment-qr.png';
@@ -777,10 +818,19 @@
   function getLogoUrl() {
     if (CONFIG.logoUrl) return CONFIG.logoUrl;
     var base = window.location.pathname;
-    if (base.indexOf('/study/') !== -1 || base.indexOf('/travel/') !== -1 || base.indexOf('/workvisa/') !== -1) {
+    if (base.indexOf('/study/') !== -1 || base.indexOf('/travel/') !== -1 || base.indexOf('/workvisa/') !== -1 || base.indexOf('/consult/') !== -1 || base.indexOf('/assess/') !== -1) {
       return '../assets/images/logo.png';
     }
     return 'assets/images/logo.png';
+  }
+
+  function getAvatarUrl(type) {
+    var base = window.location.pathname;
+    var prefix = '';
+    if (base.indexOf('/study/') !== -1 || base.indexOf('/travel/') !== -1 || base.indexOf('/workvisa/') !== -1 || base.indexOf('/consult/') !== -1 || base.indexOf('/assess/') !== -1) {
+      prefix = '../';
+    }
+    return prefix + 'assets/images/yingxi-avatar.jpg';
   }
 
   // ========== 咨询模式 ==========
@@ -790,14 +840,25 @@
     var dialog = document.createElement('div');
     dialog.className = 'lp-dialog lp-chat-dialog';
 
+    // 按页面类型决定显示内容：首页显示业务模块（上半部），其余页面显示快捷话题+输入框（下半部）
+    var isIndex = (pageRoute.mode === 'router');
+    // 首页切进具体 Agent 之后不再重复显示入口网格
+    var showModuleGrid = isIndex && !suppressModuleGrid;
+    var showQuickTopics = !isIndex; // 其余页面：显示快捷话题
+    var showInputBar = true;        // 所有页面：显示输入框（让用户能直接提问）
+
+    // 身份文案取自当前 Agent，而不是页面——首页切到留学 Agent 后
+    // 头部要跟着变成「留学规划顾问」，否则用户看不出自己在跟谁说话。
+    var agentMeta = RT.metaOf(currentAgentKey);
+
     // 头部
     var header = document.createElement('div');
     header.className = 'lp-chat-header';
     header.innerHTML = `
-      <div class="lp-bot-avatar">🤖</div>
+      <div class="lp-bot-avatar"><img src="${getAvatarUrl('tech')}" alt="AI顾问" style="width:100%;height:100%;object-fit:cover;border-radius:12px;"></div>
       <div class="lp-header-info">
-        <div class="lp-header-title">${pageConfig.botTitle}</div>
-        <div class="lp-header-sub">${pageConfig.botSub}</div>
+        <div class="lp-header-title">${agentMeta.botTitle}</div>
+        <div class="lp-header-sub">${agentMeta.botSub}</div>
       </div>
       <div class="lp-header-status"><span></span>在线</div>
       <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
@@ -811,51 +872,81 @@
     messagesContainer = document.createElement('div');
     messagesContainer.className = 'lp-messages';
 
-    // 欢迎语
+    // 欢迎语同样跟着 Agent 走。
+    // 例外：子页面停在本页默认 Agent 时，沿用 PAGE_CONFIGS 的文案，
+    // 因为它和下面那排快捷话题是配套的（「请选择您感兴趣的留学方向」）。
+    var welcomeText =
+      (!isIndex && currentAgentKey === pageAgentKey) ? pageConfig.welcomeText : agentMeta.welcomeText;
     var welcome = document.createElement('div');
     welcome.className = 'lp-welcome';
     welcome.innerHTML = `
-      <div class="lp-welcome-avatar">🤖</div>
-      <div class="lp-welcome-bubble">${pageConfig.welcomeText}</div>
+      <div class="lp-welcome-avatar"><img src="${getAvatarUrl('cute')}" alt="AI顾问" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></div>
+      <div class="lp-welcome-bubble">${welcomeText}</div>
     `;
     messagesContainer.appendChild(welcome);
 
-    // 快捷入口
-    var quickGrid = document.createElement('div');
-    quickGrid.className = 'lp-quick-grid';
-    pageConfig.quickTopics.forEach(function(topic) {
-      var item = document.createElement('div');
-      item.className = 'lp-quick-item';
-      item.innerHTML = `<div class="lp-qi-icon">${topic.icon}</div><div class="lp-qi-title">${topic.title}</div><div class="lp-qi-desc">${topic.desc}</div>`;
-      item.onclick = function() {
-        quickGrid.style.display = 'none';
-        sendMessage('我想了解' + topic.title + '，' + topic.desc);
-      };
-      quickGrid.appendChild(item);
-    });
-    messagesContainer.appendChild(quickGrid);
+    // 业务模块快捷入口（上半部 — 仅首页显示）
+    //
+    // 改造前这里是 5 个 <a target="_blank">，且 url 全部是同一个
+    // CONFIG.openhexAgentUrl —— 而那个链接是天赋测评 Agent 的分享页，
+    // 所以点「留学」会新开一个天赋测评窗口。现在改为站内切 Agent，
+    // 并补上第 6 个「低龄升学」（复用留学 Agent）。
+    if (showModuleGrid) {
+      var moduleGrid = document.createElement('div');
+      moduleGrid.className = 'lp-module-grid';
+      (pageRoute.quickEntries || []).forEach(function(entry) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'lp-module-btn';
+        btn.setAttribute('aria-label', entry.label + ' 咨询');
+        btn.innerHTML = '<div class="lp-mod-icon">' + entry.icon + '</div><div class="lp-mod-label">' + entry.label + '</div>';
+        btn.onclick = function() { switchAgent(entry.agent); };
+        moduleGrid.appendChild(btn);
+      });
+      messagesContainer.appendChild(moduleGrid);
+    }
+
+    // 快捷入口（下半部 — 仅非首页显示）
+    var quickGrid = null;
+    if (showQuickTopics) {
+      quickGrid = document.createElement('div');
+      quickGrid.className = 'lp-quick-grid';
+      pageConfig.quickTopics.forEach(function(topic) {
+        var item = document.createElement('div');
+        item.className = 'lp-quick-item';
+        item.innerHTML = `<div class="lp-qi-icon">${topic.icon}</div><div class="lp-qi-title">${topic.title}</div><div class="lp-qi-desc">${topic.desc}</div>`;
+        item.onclick = function() {
+          quickGrid.style.display = 'none';
+          sendMessage('我想了解' + topic.title + '，' + topic.desc);
+        };
+        quickGrid.appendChild(item);
+      });
+      messagesContainer.appendChild(quickGrid);
+    }
 
     body.appendChild(messagesContainer);
 
-    // 输入栏
-    var inputBar = document.createElement('div');
-    inputBar.className = 'lp-input-bar';
-    inputElement = document.createElement('textarea');
-    inputElement.placeholder = '输入你的留学问题…';
-    inputElement.rows = 1;
-    inputElement.style.cssText = 'flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;color:#334155;font-size:.85rem;resize:none;outline:none;font-family:inherit;max-height:80px;line-height:1.5;transition:border-color .2s;';
-    inputElement.onfocus = function() { inputElement.style.borderColor = '#6366f1'; inputElement.style.background = '#fff'; };
-    inputElement.onblur = function() { inputElement.style.borderColor = '#e2e8f0'; inputElement.style.background = '#f8fafc'; };
-    inputElement.oninput = function() { inputElement.style.height = 'auto'; inputElement.style.height = Math.min(inputElement.scrollHeight, 80) + 'px'; };
-    inputElement.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+    // 输入栏（下半部 — 所有页面显示，让用户能直接提问）
+    if (showInputBar) {
+      var inputBar = document.createElement('div');
+      inputBar.className = 'lp-input-bar';
+      inputElement = document.createElement('textarea');
+      inputElement.placeholder = '输入你的问题…';
+      inputElement.rows = 1;
+      inputElement.style.cssText = 'flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;color:#334155;font-size:.85rem;resize:none;outline:none;font-family:inherit;max-height:80px;line-height:1.5;transition:border-color .2s;';
+      inputElement.onfocus = function() { inputElement.style.borderColor = '#6366f1'; inputElement.style.background = '#fff'; };
+      inputElement.onblur = function() { inputElement.style.borderColor = '#e2e8f0'; inputElement.style.background = '#f8fafc'; };
+      inputElement.oninput = function() { inputElement.style.height = 'auto'; inputElement.style.height = Math.min(inputElement.scrollHeight, 80) + 'px'; };
+      inputElement.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
 
-    sendButton = document.createElement('button');
-    sendButton.innerHTML = '➤';
-    sendButton.onclick = handleSend;
+      sendButton = document.createElement('button');
+      sendButton.innerHTML = '➤';
+      sendButton.onclick = handleSend;
 
-    inputBar.appendChild(inputElement);
-    inputBar.appendChild(sendButton);
-    body.appendChild(inputBar);
+      inputBar.appendChild(inputElement);
+      inputBar.appendChild(sendButton);
+      body.appendChild(inputBar);
+    }
     quickBar = quickGrid;
 
     dialog.appendChild(body);
@@ -867,7 +958,30 @@
     isLeadSubmitted = false;
     currentMode = 'consult';
 
-    setTimeout(function() { inputElement.focus(); }, 100);
+    if (showInputBar && inputElement) {
+      setTimeout(function() { inputElement.focus(); }, 100);
+    }
+  }
+
+  /**
+   * 切到另一个 Agent 并重绘对话框。
+   *
+   * 会话不在这里处理——ohxSend 按 agentKey 取 localStorage 里的 conversationId，
+   * 所以切走再切回来，之前那个 Agent 的上下文自然还在；而不同 Agent 之间
+   * 因为 key 不同，天然互不可见。这正是 PRD §6.4 要的效果。
+   *
+   * 等待回复期间不允许切换：本轮的回复还在路上，切走会让它落进另一个
+   * Agent 的窗口里。
+   */
+  function switchAgent(agentKey) {
+    if (isWaiting) return;
+    if (!RT.agentIdOf(agentKey)) {
+      console.warn('[LumiPath] 未知 Agent:', agentKey, '，保持当前 Agent 不变');
+      return;
+    }
+    currentAgentKey = agentKey;
+    suppressModuleGrid = true;
+    showConsultModal();
   }
 
   function handleSend() {
@@ -889,7 +1003,8 @@
     if (!CONFIG.apiEndpoint) {
       // 直连 OpenHex Agent；失败（积分不足/网络异常）回退本地话术+留资
       var ohxStream = createStreamingBubble();
-      ohxTurn(text).then(function(reply) {
+      var sendingAgentKey = currentAgentKey; // 锁定本轮的 Agent，防止等待期间被切走
+      ohxTurn(text, sendingAgentKey).then(function(reply) {
         ohxStream.startStreaming();
         ohxStream.append(reply);
         ohxStream.done();
@@ -945,7 +1060,7 @@
     var stream = createStreamingBubble();
     setTimeout(function() {
       stream.startStreaming();
-      var text = '感谢您的咨询！我是星途LumiPath的AI顾问小西。\n\n关于"' + userText + '"，我可以为您提供以下信息：\n\n• 我们提供新加坡PSB/SIM跳板、六国名校直申、奖学金申请等留学服务\n• 同时覆盖出国工作、跨境旅游、AI转岗就业等业务\n• 基础咨询免服务费，靠院校返佣盈利\n\n请问您怎么称呼？方便留个手机号或微信号吗？我们的专业顾问会尽快联系您，提供一对一深度咨询。';
+      var text = '感谢您的咨询！我是星途LumiPath的AI顾问小西。\n\n关于"' + userText + '"，我可以为您提供以下信息：\n\n• 我们提供新加坡PSB/SIM跳板、六国名校直申、奖学金申请等留学服务\n• 同时覆盖出国工作、跨境旅游、AI转岗就业等业务\n• 基础咨询免服务费，高性价比全流程代办\n\n请问您怎么称呼？方便留个手机号或微信号吗？我们的专业顾问会尽快联系您，提供一对一深度咨询。';
       var i = 0;
       var timer = setInterval(function() {
         if (i < text.length) { stream.append(text[i]); i++; }
@@ -1364,60 +1479,28 @@
         ${resultCardsHtml}
         <div class="lp-result-contact" id="lp-result-contact">
           <div class="lp-contact-title">📋 获取完整测评报告</div>
-          <div class="lp-contact-desc">留下联系方式，顾问将为你发送包含详细分析、院校推荐和路径规划的完整报告</div>
-          <input type="text" id="lp-study-name" placeholder="您的称呼（如：王同学）">
-          <input type="text" id="lp-study-phone" placeholder="手机号或微信号">
-          <button id="lp-study-submit" disabled>提交并获取完整报告 →</button>
+          <div class="lp-contact-desc">完整报告包含详细分析、院校推荐、路径规划和费用预估</div>
+          <button class="lp-assess-btn" id="lp-study-full-report">获取完整报告 →</button>
         </div>
       </div>
     `;
     modal.innerHTML = '';
     modal.appendChild(dialog);
 
-    var nameInput = document.getElementById('lp-study-name');
-    var phoneInput = document.getElementById('lp-study-phone');
-    var submitBtn = document.getElementById('lp-study-submit');
-
-    function checkReady() {
-      submitBtn.disabled = !nameInput.value.trim() || !phoneInput.value.trim();
-    }
-    nameInput.oninput = checkReady;
-    phoneInput.oninput = checkReady;
-
-    submitBtn.onclick = function() {
-      // 收集测评数据
+    var reportBtn = document.getElementById('lp-study-full-report');
+    reportBtn.onclick = function() {
+      // 自动保存测评数据
       var flatQs = getFlatQuestions();
       var answersText = studyAssessAnswers.map(function(selectedIdxs, qIdx) {
         var q = flatQs[qIdx].question;
         var texts = selectedIdxs.map(function(i) { return q.options[i].text; });
         return q.title + ': ' + texts.join(', ');
       }).join(' | ');
-
       var topMajorsText = results.map(function(r) {
         return STUDY_MAJORS[r.key].name + '(' + r.pct + '%)';
       }).join(', ');
-
-      var data = {
-        source: '留学深度测评',
-        name: nameInput.value.trim(),
-        phone: phoneInput.value.trim(),
-        answers: answersText,
-        recommendedMajors: topMajorsText,
-        pageType: 'study'
-      };
-
-      // 保存到本地
-      saveLeadLocal(data);
-
-      // 尝试提交到API
-      var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/form-submit' : '';
-      if (apiUrl) {
-        fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-          .then(function() { renderStudyAssessSuccess(nameInput.value.trim()); })
-          .catch(function() { renderStudyAssessSuccess(nameInput.value.trim()); });
-      } else {
-        renderStudyAssessSuccess(nameInput.value.trim());
-      }
+      saveLeadLocal({ source: '留学深度测评', answers: answersText, recommendedMajors: topMajorsText, pageType: 'study' });
+      showReportModal();
     };
   }
 
@@ -1798,58 +1881,27 @@
         ${warningHtml}
         ${resultCardsHtml}
         <div class="lp-result-contact" id="lp-work-result-contact">
-          <div class="lp-contact-title">📋 获取详细评估报告</div>
-          <div class="lp-contact-desc">留下联系方式，顾问将为你发送包含签证方案、费用明细、落地保障的完整评估报告</div>
-          <input type="text" id="lp-work-name" placeholder="您的称呼（如：王先生）">
-          <input type="text" id="lp-work-phone" placeholder="手机号或微信号">
-          <button id="lp-work-submit" disabled>提交并获取完整报告 →</button>
+          <div class="lp-contact-title">📋 获取完整评估报告</div>
+          <div class="lp-contact-desc">完整报告包含签证方案、费用明细、落地保障</div>
+          <button class="lp-assess-btn" id="lp-work-full-report">获取完整报告 →</button>
         </div>
       </div>
     `;
     modal.innerHTML = '';
     modal.appendChild(dialog);
 
-    var nameInput = document.getElementById('lp-work-name');
-    var phoneInput = document.getElementById('lp-work-phone');
-    var submitBtn = document.getElementById('lp-work-submit');
-
-    function checkReady() {
-      submitBtn.disabled = !nameInput.value.trim() || !phoneInput.value.trim();
-    }
-    nameInput.oninput = checkReady;
-    phoneInput.oninput = checkReady;
-
-    submitBtn.onclick = function() {
-      // 收集测评数据
+    var reportBtn = document.getElementById('lp-work-full-report');
+    reportBtn.onclick = function() {
       var answersText = workAssessAnswers.map(function(selectedIdxs, qIdx) {
         var q = WORK_QUESTIONS[qIdx];
         var texts = selectedIdxs.map(function(i) { return q.options[i].text; });
         return q.title + ': ' + texts.join(', ');
       }).join(' | ');
-
       var topCountriesText = topResults.map(function(r) {
         return WORK_COUNTRIES[r.key].name + '(' + r.pct + '%)';
       }).join(', ');
-
-      var data = {
-        source: '出国工作深度测评',
-        name: nameInput.value.trim(),
-        phone: phoneInput.value.trim(),
-        answers: answersText,
-        recommendedCountries: topCountriesText,
-        pageType: 'work'
-      };
-
-      saveLeadLocal(data);
-
-      var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/form-submit' : '';
-      if (apiUrl) {
-        fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-          .then(function() { renderWorkAssessSuccess(nameInput.value.trim(), topCountriesText); })
-          .catch(function() { renderWorkAssessSuccess(nameInput.value.trim(), topCountriesText); });
-      } else {
-        renderWorkAssessSuccess(nameInput.value.trim(), topCountriesText);
-      }
+      saveLeadLocal({ source: '出国工作深度测评', answers: answersText, recommendedCountries: topCountriesText, pageType: 'work' });
+      showReportModal();
     };
   }
 
@@ -2111,15 +2163,7 @@
         <div class="lp-step-title">${stepCfg.title}</div>
         <div class="lp-step-question">${stepCfg.q}（可多选）</div>
         <div class="lp-options" id="lp-country-options"></div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:.82rem;color:#475569;margin-bottom:6px">您的称呼</div>
-          <input type="text" class="lp-text-input" id="lp-name-input" placeholder="如：王同学">
-        </div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:.82rem;color:#475569;margin-bottom:6px">联系方式（手机号或微信）</div>
-          <input type="text" class="lp-text-input" id="lp-phone-input" placeholder="方便顾问联系您">
-        </div>
-        <button class="lp-next-btn" id="lp-submit-assess" disabled>提交测评 →</button>
+        <button class="lp-next-btn" id="lp-submit-assess" disabled>查看测评结果 →</button>
       </div>
     `;
     modal.innerHTML = '';
@@ -2138,46 +2182,33 @@
       };
       optsContainer.appendChild(chip);
     });
-    var nameInput = document.getElementById('lp-name-input');
-    var phoneInput = document.getElementById('lp-phone-input');
-    nameInput.oninput = checkStep3Ready;
-    phoneInput.oninput = checkStep3Ready;
+
     function checkStep3Ready() {
-      document.getElementById('lp-submit-assess').disabled = selectedCountries.length === 0 || !nameInput.value.trim() || !phoneInput.value.trim();
+      document.getElementById('lp-submit-assess').disabled = selectedCountries.length === 0;
     }
     document.getElementById('lp-submit-assess').onclick = function() {
       assessData.countries = selectedCountries;
-      assessData.name = nameInput.value.trim();
-      assessData.phone = phoneInput.value.trim();
       submitAssess();
     };
   }
 
   function submitAssess() {
     var data = {
-      source: pageType === 'travel' ? '跨境旅游测评' : pageType === 'work' ? '出国工作测评' : '免费测评',
-      name: assessData.name,
-      phone: assessData.phone,
+      source: pageType === 'travel' ? '跨境旅游测评' : pageType === 'work' ? '出国工作测评' : '测评',
       step1: (assessData.step1 || []).join(','),
       step2: assessData.step2 || '',
       step2Extra: assessData.step2Extra || '',
       countries: (assessData.countries || []).join(','),
       pageType: pageType
     };
-
-    // 提交到Worker或本地存储
-    var apiUrl = CONFIG.apiEndpoint ? CONFIG.apiEndpoint.replace(/\/$/, '') + '/form-submit' : '';
-    if (apiUrl) {
-      fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-        .then(function() { renderAssessSuccess(); })
-        .catch(function() { saveLeadLocal(data); renderAssessSuccess(); });
-    } else {
-      saveLeadLocal(data);
-      renderAssessSuccess();
-    }
+    saveLeadLocal(data);
+    renderAssessSuccess();
   }
 
   function renderAssessSuccess() {
+    var interestText = (assessData.step1 || []).join('、');
+    var bgText = assessData.step2 || '';
+    var countryText = (assessData.countries || []).join('、');
     var dialog = document.createElement('div');
     dialog.className = 'lp-dialog lp-assess-dialog';
     dialog.innerHTML = `
@@ -2192,14 +2223,23 @@
       <div class="lp-assess-body">
         <div class="lp-assess-success">
           <div class="lp-success-icon">🎉</div>
-          <div class="lp-success-title">测评信息提交成功！</div>
-          <div class="lp-success-desc">感谢${assessData.name || '您'}的参与！我们的专业顾问将根据您提交的信息，在24小时内为您生成个性化的专业方向推荐与留学路径建议，并通过电话或微信联系您。</div>
-          <div class="lp-success-tip">期待与您沟通，开启您的星途之旅 🌟</div>
+          <div class="lp-success-title">测评完成！</div>
+          <div style="text-align:left;background:#f8fafc;border-radius:12px;padding:16px;margin:16px auto;max-width:320px">
+            <div style="font-size:.78rem;color:#64748b;margin-bottom:8px;font-weight:600">你的选择：</div>
+            <div style="font-size:.8rem;color:#334155;line-height:1.8">
+              <div>✨ 兴趣方向：${interestText || '未选择'}</div>
+              <div>📖 背景：${bgText || '未选择'}</div>
+              <div>🌐 目标：${countryText || '未选择'}</div>
+            </div>
+          </div>
+          <div class="lp-success-desc" style="margin-top:12px">AI已根据你的选择生成初步分析，完整报告包含详细专业推荐、院校匹配和路径规划</div>
+          <button class="lp-assess-btn" id="lp-basic-full-report" style="margin-top:16px">获取完整报告 →</button>
         </div>
       </div>
     `;
     modal.innerHTML = '';
     modal.appendChild(dialog);
+    document.getElementById('lp-basic-full-report').onclick = function() { showReportModal(); };
   }
 
   // ========== 支付弹窗 ==========
@@ -2235,32 +2275,29 @@
     document.body.style.overflow = 'hidden';
   }
 
-  // ========== 测评支付弹窗（支付后跳转AI智能体） ==========
-  function showAssessPayModal() {
+  // ========== 获取完整报告弹窗（支付链接占位 + 添加微信） ==========
+  function showReportModal() {
     createModal();
     modal.innerHTML = '';
-    var qrUrl = getPaymentQrUrl();
-    var agentUrl = CONFIG.openhexAgentUrl;
     var dialog = document.createElement('div');
     dialog.className = 'lp-dialog lp-pay-dialog';
     dialog.innerHTML = `
       <div class="lp-pay-header">
-        <div class="lp-pay-title"><img src="assets/images/assess-logo-final.png" alt="AI测评" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;"> AI兴趣天赋测评 · ¥9.9</div>
+        <div class="lp-pay-title">📋 获取完整测评报告</div>
         <button class="lp-close-btn" onclick="window.LumiPathChat.hide()">✕</button>
       </div>
       <div class="lp-pay-body">
-        <div class="lp-pay-tip">请使用支付宝扫描下方二维码支付 ¥9.9</div>
-        <div class="lp-qr-wrap">
-          <div class="lp-qr-recommend">支付 ¥9.9 开启AI测评</div>
-          <div class="lp-qr-notice">支持花呗 | 信用卡 | 分期付款</div>
-          <img class="lp-qr-img" src="${qrUrl}" alt="支付宝收款码" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-          <div style="display:none;align-items:center;justify-content:center;width:200px;height:200px;margin:0 auto;background:#f1f5f9;border-radius:8px;color:#94a3b8;font-size:.8rem">收款码加载中</div>
-          <div class="lp-qr-brand">星途LumiPath</div>
-          <div class="lp-qr-alipay-logo">支付宝</div>
+        <div class="lp-pay-tip" style="margin-bottom:16px">完整报告包含：详细专业分析 · 院校推荐 · 路径规划 · 费用预估</div>
+        <div style="background:#f3e8ff;border:1px solid #e9d5ff;border-radius:12px;padding:20px;margin-bottom:16px;text-align:center">
+          <div style="font-size:.9rem;color:#7c3aed;font-weight:600;margin-bottom:8px">💳 支付获取完整报告</div>
+          <div style="font-size:.78rem;color:#64748b;margin-bottom:12px">支付链接即将上线，请扫码添加微信获取报告</div>
+          <div style="display:inline-block;background:#fff;border:2px dashed #c4b5fd;border-radius:12px;padding:20px 30px;margin:0 auto">
+            <div style="font-size:.75rem;color:#94a3b8;margin-bottom:6px">支付链接占位</div>
+            <div style="font-size:.7rem;color:#cbd5e1">TODO: 盈西补充支付链接</div>
+          </div>
         </div>
-        <div class="lp-pay-instructions">打开支付宝 → 扫一扫 → 对准上方二维码</div>
-        <div class="lp-pay-notice">支付完成后点击下方按钮，即可进入AI智能体开始测评<br>测评金可抵10000元签约服务费</div>
-        <button class="lp-pay-btn lp-pay-btn-primary" onclick="window.open('${agentUrl}','_blank')">✅ 我已支付，进入AI兴趣天赋测评</button>
+        <button class="lp-pay-btn lp-pay-btn-primary" style="background:#07c160;width:100%;margin-top:8px" onclick="window.open('weixin://','_blank')">💬 添加微信咨询</button>
+        <div class="lp-pay-notice" style="margin-top:12px">添加微信后，顾问将为你发送完整测评报告<br>也可咨询任何留学、工作、旅游相关问题</div>
       </div>
     `;
     modal.innerHTML = '';
@@ -2274,6 +2311,11 @@
       modal.innerHTML = '';
       document.body.style.overflow = '';
     }
+    // 回到本页默认 Agent：重新打开对话框时，首页应重新给出 6 个入口，
+    // 子页应回到本页 Agent，而不是停在上次切走的那个。
+    // 各 Agent 的对话历史存在 localStorage 里，不受这里影响。
+    currentAgentKey = pageAgentKey;
+    suppressModuleGrid = false;
   }
 
   function saveLeadLocal(data) {
@@ -2289,9 +2331,20 @@
     show: function(mode) {
       if (mode === 'assess') showAssessModal();
       else if (mode === 'pay') showPayModal();
-      else if (mode === 'assess-pay') showAssessPayModal();
+      else if (mode === 'report') showReportModal();
       else showConsultModal();
     },
+    /** 打开对话框并指定 Agent，如 LumiPathChat.showConsult('talent_assessment') */
+    showConsult: function(agentKey) {
+      if (agentKey && RT.agentIdOf(agentKey)) {
+        currentAgentKey = agentKey;
+        suppressModuleGrid = true;
+      }
+      showConsultModal();
+    },
+    /** 当前正在对话的 Agent key，便于埋点与联调 */
+    currentAgent: function() { return currentAgentKey; },
+    showReport: function() { showReportModal(); },
     hide: hideModal,
     config: CONFIG,
     _backIntro: renderAssessIntro,
@@ -2315,17 +2368,29 @@
       // 清除旧绑定
       btn.onclick = null;
       var action = btn.getAttribute('data-action');
-      if (action === 'consult' || action === 'assess' || action === 'pay' || action === 'assess-pay') {
+      if (action === 'consult' || action === 'assess' || action === 'pay' || action === 'report') {
         btn.addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
-          if (action === 'assess-pay') {
-            showAssessPayModal();
+          if (action === 'report') {
+            showReportModal();
           } else if (action === 'pay') {
             showPayModal();
           } else if (action === 'assess') {
             showAssessModal();
           } else {
+            // data-agent 是单点覆盖：页面内个别按钮要走别的 Agent 时用它，
+            // 目前只有留学页的天赋测评卡。没写就用本页默认 Agent。
+            // 每次点击都重设，避免上一次覆盖残留到下一个普通咨询按钮上。
+            var override = btn.getAttribute('data-agent');
+            if (override && RT.agentIdOf(override)) {
+              currentAgentKey = override;
+              suppressModuleGrid = true;
+            } else {
+              if (override) console.warn('[LumiPath] data-agent 未知:', override, '，回退到本页 Agent');
+              currentAgentKey = pageAgentKey;
+              suppressModuleGrid = false;
+            }
             showConsultModal();
           }
         });
@@ -2352,3 +2417,5 @@
     init();
   }
 })();
+
+// v13 page-differentiated chat widget

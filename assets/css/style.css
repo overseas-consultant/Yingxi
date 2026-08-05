@@ -381,6 +381,18 @@ ul, ol { list-style: none; }
   line-height: 1.6;
 }
 
+.hero .hero-tag {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(251,191,36,.15);
+  border: 1px solid rgba(251,191,36,.3);
+  border-radius: 50px;
+  font-size: .85rem;
+  color: var(--gold);
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
 .hero .hero-badges {
   display: flex;
   gap: 12px;
@@ -406,6 +418,147 @@ ul, ol { list-style: none; }
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--gold);
+}
+
+/* ===== Hero Split (左右两栏) ===== */
+.hero-split {
+  text-align: left;
+  align-items: center;
+  justify-content: center;
+}
+.hero-split .hero-split-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 24px;
+}
+.hero-split .hero-split-left {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.hero-split .hero-split-right {
+  flex: 0 0 380px;
+  max-width: 380px;
+}
+.hero-split .hero-tag {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(251,191,36,.15);
+  border: 1px solid rgba(251,191,36,.3);
+  border-radius: 50px;
+  font-size: .85rem;
+  color: var(--gold);
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+.hero-split .hero-badges {
+  justify-content: flex-start;
+}
+.hero-split .btn-group {
+  justify-content: flex-start;
+}
+/* 测评卡片（嵌入 Hero 深色背景上的白色卡片） */
+.hero-assessment-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  text-align: center;
+  position: relative;
+}
+.hero-assessment-card .assessment-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--gray-900);
+  font-size: .75rem;
+  font-weight: 800;
+  padding: 4px 18px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.hero-assessment-card .assessment-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+.hero-assessment-card .assessment-price {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gray-900);
+  margin-bottom: 6px;
+}
+.hero-assessment-card .assessment-desc {
+  font-size: .85rem;
+  color: var(--gray-500);
+  margin-bottom: 20px;
+}
+.hero-assessment-card .assessment-highlight {
+  background: rgba(251,191,36,.12);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .9rem;
+  color: var(--gold-dark);
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.hero-assessment-card .assessment-features {
+  text-align: left;
+  margin-bottom: 24px;
+  list-style: none;
+  padding: 0;
+}
+.hero-assessment-card .assessment-features li {
+  padding: 7px 0;
+  font-size: .9rem;
+  color: var(--gray-600);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.hero-assessment-card .assessment-features li::before {
+  content: '✓';
+  color: var(--gold-dark);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+/* 金色按钮 */
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--gray-900) !important;
+  border: none;
+  font-weight: 800;
+}
+.btn-gold:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251,191,36,.4);
+}
+/* 响应式：移动端堆叠 */
+@media (max-width: 900px) {
+  .hero-split .hero-split-wrapper {
+    flex-direction: column;
+    gap: 40px;
+    text-align: center;
+  }
+  .hero-split .hero-split-right {
+    flex: 0 0 auto;
+    max-width: 420px;
+    width: 100%;
+  }
+  .hero-split .hero-badges,
+  .hero-split .btn-group {
+    justify-content: center;
+  }
 }
 
 /* ===== Cards Grid ===== */
@@ -748,7 +901,7 @@ ul, ol { list-style: none; }
   transition: max-height var(--transition);
 }
 
-.faq-item.open .faq-answer { max-height: 300px; }
+.faq-item.open .faq-answer { max-height: 600px; }
 
 .faq-answer-inner {
   padding: 0 24px 18px;
@@ -1660,6 +1813,12 @@ ul, ol { list-style: none; }
     min-height: 85vh;
   }
 
+  .hero-split {
+    min-height: auto;
+    padding-top: 100px;
+    padding-bottom: 60px;
+  }
+
   .modal {
     padding: 28px 20px;
   }
@@ -1694,94 +1853,97 @@ ul, ol { list-style: none; }
 .bg-gradient-blue { background: linear-gradient(135deg, #152a63, #1e3a8a); color: var(--white); }
 
 
-/* ===== Floating Consult Button ===== */
+/* ===== Unified Floating Consult Button (全站统一·金色胶囊) ===== */
 .float-consult {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 28px;
+  right: 28px;
   z-index: 1500;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.float-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,.15);
-  transition: all var(--transition);
-  position: relative;
-}
-
-.float-btn:hover {
-  transform: scale(1.1);
-}
-
-.float-btn.primary {
+  gap: 8px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 50px;
   background: linear-gradient(135deg, var(--gold-dark), var(--gold));
   color: var(--gray-900);
-}
-
-.float-btn.secondary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  color: var(--white);
-}
-
-.float-btn .float-label {
-  position: absolute;
-  right: 64px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--gray-900);
-  color: var(--white);
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: .8rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition);
-}
-
-.float-btn:hover .float-label {
-  opacity: 1;
-}
-
-.float-btn .float-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  background: #ef4444;
-  border-radius: 50%;
-  border: 2px solid var(--white);
-  font-size: .6rem;
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 1rem;
   font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(251,191,36,.45);
+  transition: all var(--transition);
+  animation: float-consult-pulse 2.5s ease-in-out infinite;
+}
+
+.float-consult:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 32px rgba(251,191,36,.6);
+}
+
+.float-consult .float-consult-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+@keyframes float-consult-pulse {
+  0%, 100% { box-shadow: 0 4px 24px rgba(251,191,36,.45); }
+  50% { box-shadow: 0 4px 24px rgba(251,191,36,.45), 0 0 0 8px rgba(251,191,36,.12); }
 }
 
 @media (max-width: 768px) {
   .float-consult {
     bottom: 16px;
     right: 16px;
+    padding: 12px 20px;
+    font-size: .9rem;
   }
-  .float-btn {
-    width: 48px;
-    height: 48px;
-    font-size: 1.3rem;
+}
+
+/* ===== Study-Only Floating Consult Button ===== */
+.study-float-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--gray-900);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(251,191,36,.45);
+  transition: all var(--transition);
+  animation: study-float-pulse 2.5s ease-in-out infinite;
+}
+
+.study-float-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 32px rgba(251,191,36,.6);
+}
+
+.study-float-btn .study-float-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+@keyframes study-float-pulse {
+  0%, 100% { box-shadow: 0 4px 24px rgba(251,191,36,.45); }
+  50% { box-shadow: 0 4px 24px rgba(251,191,36,.45), 0 0 0 8px rgba(251,191,36,.12); }
+}
+
+@media (max-width: 768px) {
+  .study-float-btn {
+    bottom: 16px;
+    right: 16px;
+    padding: 12px 20px;
+    font-size: .9rem;
   }
-  .float-btn .float-label { display: none; }
 }
 
 /* ===== Six Paths Grid ===== */
@@ -2058,4 +2220,226 @@ ul, ol { list-style: none; }
   width: 100%;
   border-radius: var(--radius);
   overflow: hidden;
+}
+
+
+/* ===== Hero 业务卡片（4 业务板块） ===== */
+.hero-services {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 880px;
+  margin-top: 8px;
+}
+
+.hero-service-card {
+  display: block;
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 14px;
+  padding: 24px 16px;
+  text-align: center;
+  text-decoration: none;
+  color: rgba(255,255,255,.92);
+  transition: transform .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
+}
+
+.hero-service-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+  background: rgba(251,191,36,.14);
+  box-shadow: 0 12px 28px rgba(251,191,36,.28);
+  color: var(--white);
+}
+
+.hero-service-icon {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.hero-service-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+  letter-spacing: .5px;
+}
+
+.hero-service-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  letter-spacing: .3px;
+}
+
+@media (max-width: 900px) {
+  .hero-services { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .hero-service-card { padding: 20px 12px; }
+}
+@media (max-width: 480px) {
+  .hero-services { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== Hero 业务卡片 END ===== */
+
+
+.hero-services.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 720px;
+}
+
+@media (max-width: 720px) {
+  .hero-services.cols-3 { grid-template-columns: 1fr; }
+}
+
+
+.hero-hint {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 10px 24px;
+  color: rgba(255,255,255,.7);
+  font-size: .9rem;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 30px;
+  text-decoration: none;
+  transition: all .3s ease;
+  animation: hint-bounce 2.4s ease-in-out infinite;
+}
+.hero-hint:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: rgba(251,191,36,.08);
+}
+@keyframes hint-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+/* ===== v7: 首页 hero 数据条 + 浮动箭头 ===== */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 36px;
+  margin-bottom: 28px;
+}
+.hero-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 28px;
+}
+.hero-stat-num {
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+  text-shadow: 0 2px 20px rgba(251,191,36,.3);
+}
+.hero-stat-suffix {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--gold);
+}
+.hero-stat-label {
+  font-size: .85rem;
+  color: rgba(255,255,255,.7);
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+.hero-stat-divider {
+  width: 1px;
+  height: 48px;
+  background: rgba(255,255,255,.15);
+}
+.hero-scroll-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 50%;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  transition: all .3s ease;
+  animation: scroll-bounce 2s ease-in-out infinite;
+}
+.hero-scroll-arrow:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: rgba(251,191,36,.08);
+}
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ===== v7: 留学页测评强调区 ===== */
+.assessment-highlight-section {
+  background: linear-gradient(135deg, #0a1a4a 0%, #152a63 40%, #1e3a8a 100%) !important;
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+.assessment-highlight-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(251,191,36,.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+.assessment-showcase {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.assessment-showcase-left {
+  flex: 1 1 0;
+}
+.assessment-showcase-left h2 {
+  color: var(--white) !important;
+}
+.assessment-showcase-right {
+  flex: 0 0 380px;
+  max-width: 380px;
+}
+.assessment-showcase-left .tag {
+  display: inline-block;
+}
+@media (max-width: 900px) {
+  .assessment-showcase {
+    flex-direction: column;
+    gap: 40px;
+    text-align: center;
+  }
+  .assessment-showcase-right {
+    flex: 0 0 auto;
+    max-width: 420px;
+    width: 100%;
+  }
+  .assessment-showcase-left {
+    text-align: center;
+  }
+}
+@media (max-width: 720px) {
+  .hero-stats {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .hero-stat-divider {
+    width: 48px;
+    height: 1px;
+  }
+  .hero-stat-item {
+    padding: 4px 0;
+  }
 }

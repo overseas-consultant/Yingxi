@@ -1,15 +1,111 @@
 <!DOCTYPE html>
+<!-- CDN cache bust: 2026-08-03 00:25 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>澳洲工作签证 | 43岁前把你送到澳洲工作 — 星途 LumiPath</title>
-  <meta name="description" content="澳洲工作签证一站式服务：签证+雇主+落地。43岁以内8年+社保可申请，7年200+成功案例，98%通过率。一手雇主资源，AI智能匹配，透明定价6.8万全流程。">
-  <meta name="keywords" content="澳洲工作签,澳洲482签证,SID签证,澳洲雇主担保,出国务工,澳洲打工,工作签证,星途 LumiPath">
-  <meta property="og:title" content="43岁前，把你送到澳洲工作">
-  <meta property="og:description" content="签证+雇主+落地 一站到底｜7年200+案例">
-  <link rel="canonical" href="https://overseas-consultant.github.io/Yingxi/workvisa/">
-  <link rel="stylesheet" href="../assets/css/style.css?v=20260728">
+  <title>技术移民 & 海外工作 | 澳洲独立技术移民189/190/491 — 星途 LumiPath</title>
+  <meta name="description" content="澳洲技术移民与海外工作一站式服务：189独立技术移民、190州担保、491偏远地区担保，打分制透明评估。43岁以内8年+社保可申请工作签，462打工度假签证。全流程代办8.8万。">
+  <meta name="keywords" content="技术移民,澳洲技术移民,189签证,190签证,491签证,462打工度假,海外工作,出国务工,工作签证,星途 LumiPath">
+  <meta property="og:title" content="技术移民 & 海外工作 — 用专业把路走通">
+  <meta property="og:description" content="189/190/491独立技术移民 + 462打工度假 + 合法工作签">
+  <link rel="canonical" href="https://lumipath.pages.dev/workvisa/">
+  <link rel="stylesheet" href="../assets/css/style.css?v=20260805v19">
+  <style>
+    /* ===== workvisa 页面专属样式 ===== */
+    .hero-wv {
+      position: relative;
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0a1a4a 0%, #152a63 30%, #1e3a8a 60%, #2563eb 100%);
+      color: var(--white);
+      padding-top: 64px;
+    }
+    .hero-wv::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 30%, rgba(251,191,36,.15) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 70%, rgba(59,130,246,.25) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, rgba(251,191,36,.05) 0%, transparent 70%);
+    }
+    .hero-wv::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 100px;
+      background: linear-gradient(to top, var(--white), transparent);
+      pointer-events: none;
+    }
+    .hero-wv .hero-decoration { position: absolute; border-radius: 50%; opacity: .06; }
+    .hero-wv .hero-decoration.d1 { width: 450px; height: 450px; background: var(--gold); top: -120px; right: -120px; animation: float 8s ease-in-out infinite; }
+    .hero-wv .hero-decoration.d2 { width: 350px; height: 350px; background: var(--primary-light); bottom: 30px; left: -100px; animation: float 10s ease-in-out infinite reverse; }
+    .hero-wv .hero-decoration.d3 { width: 180px; height: 180px; background: var(--gold); top: 35%; left: 12%; animation: float 6s ease-in-out infinite; }
+    .hero-wv .hero-content { position: relative; z-index: 2; max-width: 860px; padding: 0 20px; }
+    .hero-wv h1 { color: var(--white); margin-bottom: 20px; text-shadow: 0 2px 30px rgba(0,0,0,.3); }
+    .hero-wv h1 .gold { color: var(--gold); }
+    .hero-wv .hero-subtitle { font-size: clamp(1rem, 2.5vw, 1.3rem); color: rgba(255,255,255,.85); margin-bottom: 32px; line-height: 1.7; }
+    .hero-wv .hero-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
+    .hero-wv .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 50px; font-size: .88rem; color: rgba(255,255,255,.95); backdrop-filter: blur(4px); }
+    .hero-wv .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+    .hero-wv .hero-tagline { color: rgba(255,255,255,.6); font-size: .85rem; margin-bottom: 28px; letter-spacing: 2px; }
+
+    /* 签证路径卡片 */
+    .visa-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 36px 30px;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition);
+      border: 1px solid var(--gray-100);
+      position: relative;
+      overflow: hidden;
+    }
+    .visa-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-xl); border-color: var(--primary); }
+    .visa-card .visa-code {
+      display: inline-block;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+    }
+    .visa-card.gold-accent .visa-code { color: var(--gold-dark); }
+    .visa-card .visa-name { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--gray-700); }
+    .visa-card .visa-desc { color: var(--gray-500); font-size: .92rem; line-height: 1.65; margin-bottom: 16px; }
+    .visa-card .visa-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .visa-card .visa-tag { padding: 4px 12px; background: rgba(30,58,138,.06); color: var(--primary); border-radius: 6px; font-size: .8rem; font-weight: 500; }
+    .visa-card.gold-accent .visa-tag { background: rgba(251,191,36,.1); color: var(--gold-dark); }
+    .visa-card .visa-detail { font-size: .88rem; color: var(--gray-500); line-height: 1.7; }
+    .visa-card .visa-detail strong { color: var(--gray-700); }
+
+    /* 流程步骤 */
+    .process-step {
+      text-align: center;
+      position: relative;
+    }
+    .process-step .step-num {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 900;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 12px rgba(30,58,138,.3);
+    }
+    .process-step .step-num.gold { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); box-shadow: 0 4px 12px rgba(251,191,36,.3); }
+    .process-step h4 { margin-bottom: 8px; font-size: 1.05rem; }
+    .process-step p { color: var(--gray-500); font-size: .88rem; line-height: 1.6; }
+
+    /* fade-in-up */
+    .fade-in-up { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+    .fade-in-up.visible { opacity: 1; transform: translateY(0); }
+    .delay-1 { transition-delay: .1s; }
+    .delay-2 { transition-delay: .2s; }
+    .delay-3 { transition-delay: .3s; }
+  </style>
 </head>
 <body>
 
@@ -22,11 +118,10 @@
       </a>
       <div class="navbar-menu">
         <a href="../index.html">首页</a>
-        <a href="../study/">留学路径</a>
-        <a href="../travel/">跨境旅游</a>
-        <a href="../workvisa/" class="active">出国工作</a>
-        <a href="../assess/">兴趣测评</a>
-        <a href="../consult/">AI就业顾问</a>
+        <a href="../study/index.html">留学</a>
+        <a href="../travel/index.html">跨境旅游</a>
+        <a href="index.html" class="active">技术移民</a>
+        <a href="../consult/index.html">AI就业</a>
       </div>
       <button class="navbar-toggle" aria-label="菜单">
         <span></span><span></span><span></span>
@@ -35,199 +130,210 @@
   </nav>
 
   <!-- ===== Hero ===== -->
-  <section class="hero">
+  <section class="hero-wv" id="hero">
     <div class="hero-decoration d1"></div>
     <div class="hero-decoration d2"></div>
     <div class="hero-decoration d3"></div>
     <div class="hero-content">
-      <h1>43岁前，把你送到<span class="gold">澳洲工作</span></h1>
-      <p class="hero-subtitle">签证 + 雇主 + 落地 一站到底<br>7年深耕 · 200+成功案例 · 98%通过率</p>
+      <p class="hero-tagline">技术移民 · 海外工作 · SKILLED MIGRATION</p>
+      <h1>用专业把路走通<br><span class="gold">澳洲技术移民 + 海外工作</span></h1>
+      <p class="hero-subtitle">189/190/491 独立技术移民 · 462 打工度假 · 合法工作签<br>打分制透明评估，一手资源精准匹配</p>
       <div class="hero-badges">
-        <span class="hero-badge"><span class="dot"></span> 482工签</span>
-        <span class="hero-badge"><span class="dot"></span> SID签证</span>
-        <span class="hero-badge"><span class="dot"></span> 一手雇主</span>
-        <span class="hero-badge"><span class="dot"></span> 全程陪伴</span>
+        <span class="hero-badge"><span class="dot"></span> 打分制透明</span>
+        <span class="hero-badge"><span class="dot"></span> 全家可移居</span>
+        <span class="hero-badge"><span class="dot"></span> AI 智能匹配</span>
       </div>
       <div class="btn-group">
         <button class="btn btn-primary btn-lg" data-action="consult">立即咨询</button>
+        <a href="#immigration" class="btn btn-ghost btn-lg">了解签证路径</a>
       </div>
     </div>
   </section>
 
-
-
-  <!-- ===== 五大业务板块 ===== -->
-  <section class="section" id="business">
+  <!-- ===== 技术移民签证路径 ===== -->
+  <section class="section" id="immigration">
     <div class="container">
       <div class="section-title fade-in-up">
-        <span class="tag">五大业务板块</span>
-        <h2>星途 LumiPath全链路服务</h2>
-        <p class="subtitle">覆盖出国全周期，当前主推澳洲工作签</p>
+        <span class="tag">技术移民</span>
+        <h2>澳洲独立技术移民三大路径</h2>
+        <p class="subtitle">打分制透明评估，不需要担保，凭自身条件直接申请永居</p>
       </div>
       <div class="cards-grid cols-3">
-        <div class="biz-card active fade-in-up">
-          <span class="badge-hot">HOT</span>
-          <div class="biz-num">01</div>
-          <h4>出国工作</h4>
-          <p>澳洲/英国/欧洲/马来西亚合法工作签，43岁以内8年+社保可申请</p>
+        <div class="visa-card fade-in-up">
+          <div class="visa-code">189</div>
+          <div class="visa-name">独立技术移民</div>
+          <p class="visa-desc">无需州担保、无需亲属担保，凭自身打分直接申请永久居留签证。获批后可在澳洲任何城市生活工作。</p>
+          <div class="visa-tags">
+            <span class="visa-tag">永久居留 PR</span>
+            <span class="visa-tag">全澳自由定居</span>
+            <span class="visa-tag">无需担保</span>
+          </div>
+          <div class="visa-detail">
+            <strong>适合人群：</strong>英语能力强（雅思6+）、职业在紧缺清单上、打分达65分以上<br>
+            <strong>核心优势：</strong>一步到位拿PR，自由度最高
+          </div>
         </div>
-        <a href="../study/" class="biz-card fade-in-up delay-1" style="text-decoration:none">
-          <div class="biz-num">02</div>
-          <h4>低龄升学</h4>
-          <p>中外联合办学/非应试路径，冲全球前300名校</p>
-        </a>
-        <a href="../travel/" class="biz-card fade-in-up delay-2" style="text-decoration:none">
-          <div class="biz-num">03</div>
-          <h4>跨境旅游</h4>
-          <p>双向：国人出境 + 海外游客来华</p>
-        </a>
-        <a href="../study/" class="biz-card fade-in-up delay-1" style="text-decoration:none">
-          <div class="biz-num">04</div>
-          <h4>留学移民</h4>
-          <p>中高端家庭，合法合规拿签证/绿卡</p>
-        </a>
-        <div class="biz-card fade-in-up delay-2" style="opacity:.6">
-          <span class="badge-soon">即将上线</span>
-          <div class="biz-num">05</div>
-          <h4>AI转岗就业</h4>
-          <p>体系化课程 + 内推 + 实战</p>
+        <div class="visa-card gold-accent fade-in-up delay-1">
+          <div class="visa-code">190</div>
+          <div class="visa-name">州担保技术移民</div>
+          <p class="visa-desc">获得澳洲某州政府担保后申请永居签证，担保州会加5分。需在担保州居住满2年。</p>
+          <div class="visa-tags">
+            <span class="visa-tag">永久居留 PR</span>
+            <span class="visa-tag">州担保+5分</span>
+            <span class="visa-tag">获邀门槛更低</span>
+          </div>
+          <div class="visa-detail">
+            <strong>适合人群：</strong>打分差一点够189线、愿意在特定州定居<br>
+            <strong>核心优势：</strong>州担保加分降低获邀门槛，各州紧缺职业不同
+          </div>
+        </div>
+        <div class="visa-card fade-in-up delay-2">
+          <div class="visa-code">491</div>
+          <div class="visa-name">偏远地区技术移民</div>
+          <p class="visa-desc">5年临时签证，在偏远地区居住工作满3年后可转191永居。州担保或亲属担保可加15分。</p>
+          <div class="visa-tags">
+            <span class="visa-tag">临时转永居</span>
+            <span class="visa-tag">担保+15分</span>
+            <span class="visa-tag">门槛最低</span>
+          </div>
+          <div class="visa-detail">
+            <strong>适合人群：</strong>打分较低、愿意先在偏远地区过渡<br>
+            <strong>核心优势：</strong>15分加分大幅降低门槛，3年后转PR
+          </div>
+        </div>
+      </div>
+      <p class="text-center fade-in-up" style="margin-top:28px;color:var(--gray-500);font-size:.88rem">三大路径均属独立技术移民（打分制），不涉及担保类签证。我们会根据你的职业、英语、年龄、经验综合评估，推荐最优路径。</p>
+    </div>
+  </section>
+
+  <!-- ===== 海外工作签证 ===== -->
+  <section class="section bg-light" id="work-visa">
+    <div class="container">
+      <div class="section-title fade-in-up">
+        <span class="tag">海外工作</span>
+        <h2>打工度假 + 合法工签，多路径出海</h2>
+        <p class="subtitle">技术移民之外，还有更适合普通人快速出海的工作签证路径</p>
+      </div>
+      <div class="cards-grid cols-2">
+        <div class="card fade-in-up">
+          <div class="card-icon" style="margin-bottom:20px">🌏</div>
+          <h3>462 打工度假签证</h3>
+          <p>18-30岁年轻人的低成本出海通道。签证有效期1年，可在澳洲合法工作、旅行、学习。完成指定地区工作可续签第二、三年。适合想先体验海外生活再做长期规划的人。</p>
+          <div class="visa-tags" style="margin-top:16px">
+            <span class="visa-tag" style="padding:4px 12px;background:rgba(30,58,138,.06);color:var(--primary);border-radius:6px;font-size:.8rem;font-weight:500">18-30岁</span>
+            <span class="visa-tag" style="padding:4px 12px;background:rgba(30,58,138,.06);color:var(--primary);border-radius:6px;font-size:.8rem;font-weight:500">可续签至3年</span>
+            <span class="visa-tag" style="padding:4px 12px;background:rgba(30,58,138,.06);color:var(--primary);border-radius:6px;font-size:.8rem;font-weight:500">低成本出海</span>
+          </div>
+        </div>
+        <div class="card fade-in-up delay-1">
+          <div class="card-icon gold" style="margin-bottom:20px">💼</div>
+          <h3>合法工作签证</h3>
+          <p>43岁以内、8年+社保记录可申请。覆盖建筑、制造、IT、护理、厨师等紧缺行业。一手岗位资源直接对接，AI智能匹配最优岗位，从签证到落地一站到底。</p>
+          <div class="visa-tags" style="margin-top:16px">
+            <span class="visa-tag" style="padding:4px 12px;background:rgba(251,191,36,.1);color:var(--gold-dark);border-radius:6px;font-size:.8rem;font-weight:500">43岁以内</span>
+            <span class="visa-tag" style="padding:4px 12px;background:rgba(251,191,36,.1);color:var(--gold-dark);border-radius:6px;font-size:.8rem;font-weight:500">8年+社保</span>
+            <span class="visa-tag" style="padding:4px 12px;background:rgba(251,191,36,.1);color:var(--gold-dark);border-radius:6px;font-size:.8rem;font-weight:500">紧缺行业</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ===== 核心优势 ===== -->
-  <section class="section bg-light" id="advantages">
+  <section class="section" id="advantages">
     <div class="container">
       <div class="section-title fade-in-up">
         <span class="tag">核心优势</span>
-        <h2>为什么选择我们办工作签</h2>
+        <h2>AI赋能 + 一手资源 = 更透明更省钱</h2>
       </div>
       <div class="cards-grid cols-4">
         <div class="card fade-in-up text-center">
-          <div class="card-icon" style="margin:0 auto 20px">🏭</div>
-          <h3>一手雇主资源</h3>
-          <p>直接对接澳洲本地雇主，涵盖建筑/制造/IT/护理/厨师等紧缺行业，无中间商赚差价。</p>
+          <div class="card-icon" style="margin:0 auto 20px">🎯</div>
+          <h3>打分透明评估</h3>
+          <p>年龄、英语、学历、经验逐项打分，你能拿多少分一目了然。不画饼、不忽悠，够不够条件先说清楚。</p>
         </div>
         <div class="card fade-in-up delay-1 text-center">
-          <div class="card-icon gold" style="margin:0 auto 20px">🤖</div>
+          <div class="card-icon gold" style="margin:0 auto 20px">💡</div>
           <h3>AI智能匹配</h3>
-          <p>AI根据你的背景、技能和偏好，匹配最适合的岗位和签证路径，通过率最大化。</p>
+          <p>AI根据你的背景和职业清单，匹配最优签证路径和目标州。通过率最大化，不走弯路。</p>
         </div>
         <div class="card fade-in-up delay-2 text-center">
           <div class="card-icon" style="margin:0 auto 20px">💰</div>
           <h3>透明定价</h3>
-          <p>费用全透明，无隐藏收费。免费AI测评，全流程6.8万，签约金可抵扣。</p>
+          <p>费用全透明，无隐藏收费。AI测评，全流程8.8万，签约金可抵扣。</p>
         </div>
         <div class="card fade-in-up delay-3 text-center">
           <div class="card-icon gold" style="margin:0 auto 20px">🛡️</div>
           <h3>全程陪伴</h3>
-          <p>从申请到落地一站式服务。接机+住宿安排+入职陪同，让你在异国他乡不孤单。</p>
+          <p>从打分评估到签证获批，从落地安家到入职上岗。每个环节都有人管，异国他乡不孤单。</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== 成功案例 ===== -->
-  <section class="section" id="cases">
+  <!-- ===== 服务流程 ===== -->
+  <section class="section bg-light" id="process">
     <div class="container">
       <div class="section-title fade-in-up">
-        <span class="tag">成功案例</span>
-        <h2>他们已经在澳洲工作了</h2>
-        <p class="subtitle">真实案例，脱敏展示。你的背景可能比他们更好。</p>
+        <span class="tag">服务流程</span>
+        <h2>六步走通技术移民路</h2>
+        <p class="subtitle">每一步都有专人跟进，你只需配合提供材料</p>
       </div>
-
-      <div class="carousel-container fade-in-up" data-carousel>
-        <div class="carousel-track">
-          <div class="carousel-slide">
-            <div class="case-card">
-              <div class="case-header">
-                <div class="case-avatar">张</div>
-                <div>
-                  <div class="case-name">张先生 · 35岁</div>
-                  <div class="case-meta">制造业 · 8年社保 · 482工签</div>
-                </div>
-              </div>
-              <p class="case-body">张先生在制造业工作了8年，一直想出国但不知道从何下手。我们为他匹配了墨尔本一家机械厂，4个月就拿到482工签。落地后安排了住宿和入职陪同，现已稳定工作。</p>
-              <div class="case-result">💰 年薪38万 · 落地墨尔本</div>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="case-card">
-              <div class="case-header">
-                <div class="case-avatar">李</div>
-                <div>
-                  <div class="case-name">李女士 · 28岁</div>
-                  <div class="case-meta">IT行业 · SID签证路径</div>
-                </div>
-              </div>
-              <p class="case-body">李女士是IT从业者，英语基础不错但缺乏海外经验。通过SID签证路径，3个月就匹配到悉尼一家科技公司。AI匹配的岗位和她的技能高度契合，面试一次通过。</p>
-              <div class="case-result">💰 年薪45万 · 落地悉尼</div>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="case-card">
-              <div class="case-header">
-                <div class="case-avatar">王</div>
-                <div>
-                  <div class="case-name">王先生 · 42岁</div>
-                  <div class="case-meta">建筑工程 · 赶在年龄限制前提交</div>
-                </div>
-              </div>
-              <p class="case-body">王先生42岁，建筑工程背景，眼看年龄快到限制线。我们加急处理，6个月内全家获批。妻子和孩子一同拿到陪同签证，落地布里斯班后孩子直接入读当地学校。</p>
-              <div class="case-result">👨‍👩‍👧 全家获批 · 落地布里斯班</div>
-            </div>
-          </div>
+      <div class="cards-grid cols-3">
+        <div class="process-step fade-in-up">
+          <div class="step-num">1</div>
+          <h4>AI 打分评估</h4>
+          <p>智能评估你的技术移民打分，输出可行性报告和最优路径建议</p>
         </div>
-        <div class="carousel-nav">
-          <button class="carousel-btn carousel-prev" aria-label="上一个">‹</button>
-          <div class="carousel-dots"></div>
-          <button class="carousel-btn carousel-next" aria-label="下一个">›</button>
+        <div class="process-step fade-in-up delay-1">
+          <div class="step-num gold">2</div>
+          <h4>1v1 方案定制</h4>
+          <p>资深顾问深度咨询，定制签证路径、目标州、职业评估方向</p>
         </div>
-      </div>
-
-      <div class="stats-bar fade-in-up delay-1" style="border-top:1px solid var(--gray-200);margin-top:40px">
-        <div class="stat-item">
-          <div class="stat-num"><span data-count="200">0</span><span class="suffix">+</span></div>
-          <div class="stat-label">成功客户</div>
+        <div class="process-step fade-in-up delay-2">
+          <div class="step-num">3</div>
+          <h4>职业评估</h4>
+          <p>对接对应评估机构，完成职业评估申请与材料准备</p>
         </div>
-        <div class="stat-item">
-          <div class="stat-num"><span data-count="7">0</span><span class="suffix">年</span></div>
-          <div class="stat-label">行业经验</div>
+        <div class="process-step fade-in-up delay-1">
+          <div class="step-num gold">4</div>
+          <h4>EOI 递交</h4>
+          <p>完善打分细节，提交EOI意向申请，等待州担保或邀请</p>
         </div>
-        <div class="stat-item">
-          <div class="stat-num"><span data-count="98">0</span><span class="suffix">%</span></div>
-          <div class="stat-label">通过率</div>
+        <div class="process-step fade-in-up delay-2">
+          <div class="step-num">5</div>
+          <h4>签证申请</h4>
+          <p>获邀后全程代办签证申请，材料翻译、审核、递交一站搞定</p>
         </div>
-        <div class="stat-item">
-          <div class="stat-num"><span data-count="4">0</span><span class="suffix">国</span></div>
-          <div class="stat-label">覆盖国家</div>
+        <div class="process-step fade-in-up delay-3">
+          <div class="step-num gold">6</div>
+          <h4>落地安家</h4>
+          <p>接机、住宿、入学、入职全方位安排，落地后30天持续跟进</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ===== 透明定价 ===== -->
-  <section class="section bg-light" id="pricing">
+  <section class="section" id="pricing">
     <div class="container">
       <div class="section-title fade-in-up">
         <span class="tag">透明定价</span>
         <h2>费用全透明，无隐藏收费</h2>
-        <p class="subtitle">免费AI测评，帮你精准评估签证资格，先了解再决定</p>
+        <p class="subtitle">AI测评，帮你精准评估签证资格，先了解再决定</p>
       </div>
       <div class="pricing-grid">
         <div class="pricing-card fade-in-up">
-          <div class="price-name">AI测评</div>
-          <div class="price-amount">免费<span class="unit"></span></div>
-          <div class="price-desc">智能评估你的工作签可行性</div>
-          <div class="price-highlight">💡 测评金抵10000元签约金</div>
+          <div class="price-name">天赋优势测评</div>
+          <div class="price-amount">基础版<span class="unit"></span></div>
+          <div class="price-desc">智能评估你的技术移民可行性</div>
+          <div class="price-highlight">💡 测评金抵1000元签约金</div>
           <ul class="price-features">
-            <li>AI背景评估与打分</li>
-            <li>适合签证路径推荐</li>
-            <li>通过率预估</li>
-            <li>专属测评报告</li>
+            <li>认识自己是走向成功的第一步</li>
+            <li>基础专业/就业方向匹配报告</li>
+            <li>专业/院校/就业方向参考清单</li>
+            <li>升级解锁【深度规划报告】39.9元</li>
           </ul>
-          <button class="btn btn-secondary" data-action="assess" style="width:100%">免费测评 →</button>
         </div>
         <div class="pricing-card featured fade-in-up delay-1">
           <div class="price-tag">推荐</div>
@@ -237,34 +343,33 @@
           <ul class="price-features">
             <li>1v1深度咨询（60分钟）</li>
             <li>定制签证申请方案</li>
-            <li>岗位匹配建议</li>
+            <li>打分评估与路径推荐</li>
             <li>时间线规划</li>
             <li>材料清单与指导</li>
             <li>后续答疑支持</li>
           </ul>
-          <button class="btn btn-primary" data-action="pay" style="width:100%">立即购买</button>
         </div>
         <div class="pricing-card fade-in-up delay-2">
           <div class="price-name">全流程代办</div>
-          <div class="price-amount">6.8<span class="unit">万</span></div>
-          <div class="price-desc">签证+雇主匹配+落地服务</div>
+          <div class="price-amount">8.8<span class="unit">万起</span></div>
+          <div class="price-desc">签证+职业评估+落地服务</div>
           <ul class="price-features">
             <li>签证全流程代办</li>
-            <li>雇主匹配与面试安排</li>
+            <li>职业评估对接</li>
+            <li>EOI递交与优化</li>
             <li>材料翻译与审核</li>
             <li>接机+住宿安排</li>
-            <li>入职陪同</li>
             <li>落地后30天跟进</li>
             <li>家属签证协助</li>
           </ul>
-          <button class="btn btn-secondary" data-action="consult" style="width:100%">咨询详情</button>
         </div>
       </div>
+      <p class="text-center fade-in-up" style="margin-top:24px;color:var(--gray-500);font-size:.85rem">所有服务均签订正规合同 · 支持支付宝担保交易 · 不满意可退款</p>
     </div>
   </section>
 
   <!-- ===== FAQ ===== -->
-  <section class="section" id="faq">
+  <section class="section bg-light" id="faq">
     <div class="container">
       <div class="section-title fade-in-up">
         <span class="tag">常见问题</span>
@@ -273,20 +378,29 @@
       <div class="faq-list fade-in-up">
         <div class="faq-item">
           <button class="faq-question">
-            <span>年龄有什么限制？</span>
+            <span>技术移民需要多少分？</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <div class="faq-answer-inner">43岁以内是最佳申请年龄，部分签证类型可放宽至45岁。建议尽早规划，年龄越小通过率越高、可选岗位越多。</div>
+            <div class="faq-answer-inner">189独立技术移民最低65分，190州担保因有5分加分门槛相对降低，491偏远地区有15分加分门槛最低。打分维度包括年龄、英语、学历、工作经验、澳洲学习经历等。我们会帮你逐项评估，告诉你目前能拿多少分、还差多少分。</div>
           </div>
         </div>
         <div class="faq-item">
           <button class="faq-question">
-            <span>社保需要多久？</span>
+            <span>年龄有什么限制？</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <div class="faq-answer-inner">至少8年社保记录，部分行业可适当放宽。社保记录是证明工作经验的重要材料，建议提前准备完整。</div>
+            <div class="faq-answer-inner">技术移民打分中25-32岁是最高分档（30分），45岁为打分上限。工作签证43岁以内是最佳申请年龄。建议尽早规划，年龄越小通过率越高、可选路径越多。</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>英语需要什么水平？</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">技术移民一般要求雅思6分以上（各单项不低于6），分数越高加分越多。对于英语基础薄弱的申请人，我们提供培训建议和学习规划。部分工作签证岗位无英语要求或有较低要求。</div>
           </div>
         </div>
         <div class="faq-item">
@@ -295,7 +409,7 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <div class="faq-answer-inner">免费AI测评，299元1v1定制咨询，全流程代办6.8万元。费用全透明，无隐藏收费。相比传统中介动辄10万+，我们靠AI降本和一手资源，价格更优。</div>
+            <div class="faq-answer-inner">AI测评，299元1v1定制咨询，全流程代办8.8万元起。费用全透明，无隐藏收费。相比传统中介动辄15万+，我们靠AI降本和一手资源，价格更优。</div>
           </div>
         </div>
         <div class="faq-item">
@@ -304,7 +418,7 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <div class="faq-answer-inner">一般3-6个月，视签证类型和个人情况而定。482工签通常3-4个月，SID签证可更快。我们会为你制定详细时间线，全程跟进进度。</div>
+            <div class="faq-answer-inner">技术移民从职业评估到签证获批一般6-12个月，视签证类型和个人情况而定。工作签证一般3-6个月。我们会为你制定详细时间线，全程跟进进度。</div>
           </div>
         </div>
         <div class="faq-item">
@@ -313,39 +427,31 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <div class="faq-answer-inner">可以。主签获批后，配偶和未成年子女可申请陪同签证，在澳洲合法居住。子女可入读当地学校，配偶可合法工作。</div>
+            <div class="faq-answer-inner">可以。技术移民PR获批后，配偶和未成年子女可申请陪同签证，在澳洲合法居住。子女可入读当地学校，配偶可合法工作。工作签证主签获批后同样可申请家属陪同。</div>
           </div>
         </div>
         <div class="faq-item">
           <button class="faq-question">
-            <span>落地后有人接吗？</span>
+            <span>哪些职业最容易通过？</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <div class="faq-answer-inner">有。我们提供接机服务+短期住宿安排+入职陪同。落地后30天内持续跟进，确保你顺利适应新环境。有任何问题随时联系。</div>
+            <div class="faq-answer-inner">IT、工程、护理、医疗、教育、技工类职业长期在紧缺清单上，通过率最高。澳洲每年更新紧缺职业列表（MLTSSL/STSOL），我们会帮你查最新列表，看你的职业是否在列。</div>
           </div>
         </div>
         <div class="faq-item">
           <button class="faq-question">
-            <span>英语不好能去吗？</span>
+            <span>189/190/491 怎么选？</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <div class="faq-answer-inner">部分岗位无英语要求。对于有英语要求的岗位，我们提供英语培训支持，帮你达到基本沟通水平。实际工作中很多华人雇主环境，日常沟通无障碍。</div>
-          </div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">
-            <span>哪些职业最容易？</span>
-            <span class="faq-icon">+</span>
-          </button>
-          <div class="faq-answer">
-            <div class="faq-answer-inner">建筑、制造、IT、护理、厨师等紧缺职业通过率最高。澳洲长期面临技能短缺，这些行业的需求量大、审批快。我们会根据你的背景匹配最优路径。</div>
+            <div class="faq-answer-inner">打分够且职业在MLTSSL清单 → 优先189（自由度最高）；打分差一点 → 190州担保（+5分降低门槛）；打分较低或职业仅在偏远地区清单 → 491（+15分门槛最低，3年后转PR）。我们会根据你的具体情况综合分析推荐。</div>
           </div>
         </div>
       </div>
     </div>
   </section>
+
   <!-- ===== Footer ===== -->
   <footer class="footer">
     <div class="container">
@@ -356,10 +462,10 @@
         </div>
         <div class="footer-links">
           <a href="../index.html">首页</a>
-          <a href="../study/">留学路径</a>
-          <a href="../travel/">跨境旅游</a>
-          <a href="../workvisa/">出国工作</a>
-          <a href="javascript:void(0)" data-action="consult">AI就业顾问</a>
+          <a href="../study/index.html">留学</a>
+          <a href="../travel/index.html">跨境旅游</a>
+          <a href="index.html">技术移民</a>
+          <a href="javascript:void(0)" data-action="consult">AI就业</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -370,12 +476,10 @@
   </footer>
 
   <!-- ===== Floating Consult Button ===== -->
-  <div class="float-consult">
-    <button class="float-btn primary" data-action="consult" title="在线咨询">
-      💬
-      <span class="float-label">在线咨询</span>
-    </button>
-  </div>
+  <button class="float-consult" data-action="consult" title="在线咨询">
+    <span class="float-consult-icon">💬</span>
+    <span>咨询</span>
+  </button>
 
   <!-- ===== Payment Modal ===== -->
   <div class="overlay" id="payment-modal">
@@ -388,7 +492,12 @@
     </div>
   </div>
 
-  <script src="../assets/js/main.js?v=20260728"></script>
-  <script src="../assets/js/chat-widget.js?v=20260728"></script>
+  <script src="../assets/js/main.js?v=20260805v19"></script>
+  <script src="../assets/js/agent-routing.js?v=20260805v19"></script>
+  <script src="../assets/js/chat-widget.js?v=20260805v19"></script>
+<!-- CDN cache refresh 2026-08-03 00:30 -->
+<!-- 8/3 12:50 redeploy -->
+<!-- 8/3 13:20 pricing no btn -->
+<!-- 8/3 13:35 hero cards v6 -->
 </body>
 </html>

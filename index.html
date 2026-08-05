@@ -1,16 +1,131 @@
+<!-- v25 study-topics-fix -->
 <!DOCTYPE html>
+<!-- CDN cache bust: 2026-08-03 00:25 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>星途 LumiPath · 留学双跳板+六国直申，直通QS前25名校 | AI赋能 · 一手资源 · 透明定价</title>
-  <meta name="description" content="星途 LumiPath，综合留学服务平台。PSB+SIM双跳板+六国名校直申，覆盖低龄升学/综合留学/奖学金申请/个性化规划。直通悉尼大学(QS#25)、莫纳什(QS#36)、LSE(QS#56)等名校。AI赋能，服务费比传统中介低50%+。中留服认证，考公考编全认可。">
-  <meta name="keywords" content="新加坡留学,PSB Academy,SIM新加坡管理学院,留学跳板,低龄升学,名校直申,六国留学,QS前300,中留服认证,弯道超车,星途 LumiPath,奖学金申请,留学规划">
-  <meta property="og:title" content="星途 LumiPath · 留学双跳板+六国直申，直通QS前25名校">
-  <meta property="og:description" content="PSB+SIM双通道+六国直申，低分弯道超车进名校。费用省50%+，中留服认证。">
+  <title>星途 LumiPath · 全球流动决策平台 | 留学 · 工作 · 旅行 · 海外生活</title>
+  <meta name="description" content="星途 LumiPath，AI赋能的全球流动决策平台。覆盖留学、技术移民、跨境旅游、海外工作、AI就业五大板块，出国与来华双向流动。用专业服务护航。">
+  <meta name="keywords" content="全球流动,跨境服务,留学,技术移民,跨境旅游,海外工作,AI就业,星途 LumiPath,Global Mobility">
+  <meta property="og:title" content="星途 LumiPath · 全球流动决策平台">
+  <meta property="og:description" content="留学·工作·旅行·海外生活，覆盖出国与来华双向流动场景。用专业服务护航。">
   <meta property="og:type" content="website">
-  <link rel="canonical" href="https://overseas-consultant.github.io/Yingxi/">
-  <link rel="stylesheet" href="assets/css/style.css?v=20260728">
+  <link rel="canonical" href="https://lumipath.pages.dev/">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260805v19">
+  <style>
+    /* ===== 首页专属样式 ===== */
+    .hero-global {
+      position: relative;
+      min-height: 92vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0a1a4a 0%, #152a63 30%, #1e3a8a 60%, #2563eb 100%);
+      color: var(--white);
+      padding-top: 64px;
+    }
+    .hero-global::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 30%, rgba(251,191,36,.15) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 70%, rgba(59,130,246,.25) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, rgba(251,191,36,.05) 0%, transparent 70%);
+    }
+    .hero-global::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 100px;
+      background: linear-gradient(to top, var(--white), transparent);
+      pointer-events: none;
+    }
+    .hero-global .hero-decoration { position: absolute; border-radius: 50%; opacity: .06; }
+    .hero-global .hero-decoration.d1 { width: 450px; height: 450px; background: var(--gold); top: -120px; right: -120px; animation: float 8s ease-in-out infinite; }
+    .hero-global .hero-decoration.d2 { width: 350px; height: 350px; background: var(--primary-light); bottom: 30px; left: -100px; animation: float 10s ease-in-out infinite reverse; }
+    .hero-global .hero-decoration.d3 { width: 180px; height: 180px; background: var(--gold); top: 35%; left: 12%; animation: float 6s ease-in-out infinite; }
+    .hero-global .hero-content { position: relative; z-index: 2; max-width: 860px; padding: 0 20px; }
+    .hero-global h1 { color: var(--white); margin-bottom: 20px; text-shadow: 0 2px 30px rgba(0,0,0,.3); }
+    .hero-global h1 .gold { color: var(--gold); }
+    .hero-global .hero-subtitle { font-size: clamp(1rem, 2.5vw, 1.3rem); color: rgba(255,255,255,.85); margin-bottom: 32px; line-height: 1.7; }
+    .hero-global .hero-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
+    .hero-global .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 50px; font-size: .88rem; color: rgba(255,255,255,.95); backdrop-filter: blur(4px); }
+    .hero-global .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+    .hero-global .hero-tagline { color: rgba(255,255,255,.6); font-size: .85rem; margin-bottom: 28px; letter-spacing: 2px; }
+
+    /* 核心板块卡片 */
+    .module-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 36px 30px;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition);
+      border: 1px solid var(--gray-100);
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      display: block;
+    }
+    .module-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); border-color: var(--primary); }
+    .module-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      transform: scaleX(0); transform-origin: left; transition: transform .4s ease;
+    }
+    .module-card:hover::before { transform: scaleX(1); }
+    .module-card.gold-accent::before { background: linear-gradient(90deg, var(--gold), var(--gold-dark)); }
+    .module-card .module-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 20px; background: linear-gradient(135deg, rgba(30,58,138,.08), rgba(59,130,246,.08)); }
+    .module-card .module-icon.gold-bg { background: linear-gradient(135deg, rgba(251,191,36,.15), rgba(217,119,6,.1)); }
+    .module-card .module-en { font-size: .78rem; color: var(--gray-400); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .module-card h3 { margin-bottom: 10px; font-size: 1.3rem; }
+    .module-card .module-desc { color: var(--gray-500); font-size: .92rem; line-height: 1.65; margin-bottom: 16px; }
+    .module-card .module-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .module-card .module-tag { padding: 3px 10px; background: rgba(30,58,138,.06); color: var(--primary); border-radius: 6px; font-size: .78rem; font-weight: 500; }
+    .module-card.gold-accent .module-tag { background: rgba(251,191,36,.1); color: var(--gold-dark); }
+    .module-card .module-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: .9rem; color: var(--primary); }
+    .module-card:hover .module-link { gap: 10px; }
+
+    /* 创始人故事 */
+    .founder-section { background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%); }
+    .founder-card { background: var(--white); border-radius: var(--radius-lg); padding: 40px 36px; box-shadow: var(--shadow-lg); border-left: 5px solid var(--gold); }
+    .founder-card h3 { margin-bottom: 16px; color: var(--primary); }
+    .founder-card p { color: var(--gray-600); line-height: 1.8; margin-bottom: 12px; font-size: .95rem; }
+    .founder-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--gray-200); }
+    .founder-stat { text-align: center; }
+    .founder-stat .num { font-size: 2rem; font-weight: 900; color: var(--primary); }
+    .founder-stat .num .suffix { color: var(--gold); }
+    .founder-stat .label { font-size: .82rem; color: var(--gray-500); margin-top: 4px; }
+
+    /* 优势卡片 */
+    .advantage-card { text-align: center; }
+    .advantage-card .card-icon { margin: 0 auto 20px !important; }
+
+    /* CTA 区域 */
+    .cta-section {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: var(--radius-lg);
+      padding: 60px 40px;
+      text-align: center;
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(251,191,36,.1) 0%, transparent 60%);
+    }
+    .cta-section h2 { color: var(--white); margin-bottom: 16px; position: relative; z-index: 1; }
+    .cta-section p { color: rgba(255,255,255,.8); font-size: 1.05rem; margin-bottom: 28px; position: relative; z-index: 1; }
+
+    /* fade-in-up */
+    .fade-in-up { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+    .fade-in-up.visible { opacity: 1; transform: translateY(0); }
+    .delay-1 { transition-delay: .1s; }
+    .delay-2 { transition-delay: .2s; }
+    .delay-3 { transition-delay: .3s; }
+  </style>
 </head>
 <body>
 
@@ -23,11 +138,10 @@
       </a>
       <div class="navbar-menu">
         <a href="index.html" class="active">首页</a>
-        <a href="study/">留学路径</a>
-        <a href="travel/">跨境旅游</a>
-        <a href="workvisa/">出国工作</a>
-        <a href="assess/">兴趣测评</a>
-        <a href="consult/">AI就业顾问</a>
+        <a href="study/index.html">留学</a>
+        <a href="travel/index.html">跨境旅游</a>
+        <a href="workvisa/index.html">技术移民</a>
+        <a href="consult/index.html">AI就业</a>
       </div>
       <button class="navbar-toggle" aria-label="菜单">
         <span></span><span></span><span></span>
@@ -35,654 +149,150 @@
     </div>
   </nav>
 
-  <!-- ===== Hero ===== -->
-  <section class="hero" id="hero">
+  <!-- ===== Hero · 全球流动决策平台 ===== -->
+  <section class="hero-global" id="hero">
     <div class="hero-decoration d1"></div>
     <div class="hero-decoration d2"></div>
     <div class="hero-decoration d3"></div>
     <div class="hero-content">
-      <h1>你的留学路<span class="gold">不止一条</span></h1>
-      <p class="hero-subtitle">从低分弯道超车到名校直申奖学金，从奖学金申请到个性化规划<br>找到最适合你的那条路</p>
-      <div class="hero-badges">
-        <span class="hero-badge"><span class="dot"></span> 6+覆盖国家</span>
-        <span class="hero-badge"><span class="dot"></span> 15+合作名校</span>
-        <span class="hero-badge"><span class="dot"></span> 中留服认证</span>
-        <span class="hero-badge"><span class="dot"></span> AI赋能降本</span>
-      </div>
-      <p style="color:rgba(255,255,255,.7);font-size:.9rem;margin-bottom:24px">新加坡跳板 · 名校直申 · 奖学金申请 · 个性化规划</p>
-      <div class="btn-group">
-        <button class="btn btn-primary btn-lg" data-action="consult">立即咨询</button>
-      </div>
+      <p class="hero-tagline">全球流动决策平台 · GLOBAL MOBILITY OS</p>
+      <h1>让每一次跨境流动<br><span class="gold">先做对决定</span></h1>
+      <p class="hero-subtitle">留学 · 工作 · 旅行 · 海外生活<br>覆盖出国与来华双向流动场景，用专业服务护航</p>
+      <a href="#modules" class="hero-scroll-arrow" aria-label="向下浏览">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+      </a>
     </div>
   </section>
 
-
-  <!-- ===== 五大业务模块 ===== -->
+  <!-- ===== 五大核心板块 ===== -->
   <section class="section" id="modules">
     <div class="container">
       <div class="section-title fade-in-up">
-        <span class="tag">业务模块</span>
-        <h2>五大模块，覆盖跨境全场景</h2>
-        <p class="subtitle">点击进入各模块了解详情，或直接咨询AI就业顾问</p>
+        <span class="tag">核心板块</span>
+        <h2>全球流动五大板块，覆盖跨境全场景</h2>
+        <p class="subtitle">从留学到工作，从旅游到移民，帮你做出最适合的跨境决策</p>
       </div>
       <div class="cards-grid cols-3">
-        <a href="study/" class="card fade-in-up text-center" style="text-decoration:none">
-          <div class="card-icon" style="margin:0 auto 20px">🎓</div>
-          <h3>留学路径</h3>
-          <p>低分逆袭 · 名校直申 · 奖学金规划 · 六国对比</p>
-          <span class="card-link">进入 →</span>
+        <a href="study/index.html" class="module-card fade-in-up">
+          <div class="module-icon">🎓</div>
+          <div class="module-en">Study Abroad</div>
+          <h3>留学服务</h3>
+          <p class="module-desc">新加坡SIM/PSB跳板直升名校 + 高考成绩直申QS前100，双通道覆盖不同基础与预算的学生群体。</p>
+          <div class="module-tags">
+            <span class="module-tag">SIM/PSB跳板</span>
+            <span class="module-tag">高考直申QS100</span>
+            <span class="module-tag">中留服认证</span>
+          </div>
+          <span class="module-link">了解更多 →</span>
         </a>
-        <a href="travel/" class="card fade-in-up delay-1 text-center" style="text-decoration:none">
-          <div class="card-icon gold" style="margin:0 auto 20px">✈️</div>
+        <a href="workvisa/index.html" class="module-card gold-accent fade-in-up delay-1">
+          <div class="module-icon gold-bg">🏗️</div>
+          <div class="module-en">Skilled Migration</div>
+          <h3>技术移民</h3>
+          <p class="module-desc">澳洲189/190/491独立技术移民路径，打分制透明评估，合法工作签证+全家移居，开启海外新生活。</p>
+          <div class="module-tags">
+            <span class="module-tag">189独立技术</span>
+            <span class="module-tag">190州担保</span>
+            <span class="module-tag">491偏远地区</span>
+          </div>
+          <span class="module-link">了解更多 →</span>
+        </a>
+        <a href="travel/index.html" class="module-card fade-in-up delay-2">
+          <div class="module-icon">✈️</div>
+          <div class="module-en">Global Travel</div>
           <h3>跨境旅游</h3>
-          <p>出境定制 · 入境接待 · 签证办理 · 行程规划</p>
-          <span class="card-link">进入 →</span>
+          <p class="module-desc">出境游定制行程 + 入境接待144小时免签过境，专业团队一站式搞定签证、机酒与地接服务。</p>
+          <div class="module-tags">
+            <span class="module-tag">出境定制游</span>
+            <span class="module-tag">入境接待</span>
+            <span class="module-tag">144h免签</span>
+          </div>
+          <span class="module-link">了解更多 →</span>
         </a>
-        <a href="workvisa/" class="card fade-in-up delay-2 text-center" style="text-decoration:none">
-          <div class="card-icon" style="margin:0 auto 20px">🏗️</div>
-          <h3>出国工作</h3>
-          <p>澳洲工签 · 雇主匹配 · 资格评估 · 落地保障</p>
-          <span class="card-link">进入 →</span>
+        <a href="workvisa/index.html" class="module-card fade-in-up delay-1">
+          <div class="module-icon">💼</div>
+          <div class="module-en">Overseas Work</div>
+          <h3>海外工作</h3>
+          <p class="module-desc">澳洲/英国/欧洲/马来西亚合法工作签，43岁以内8年+社保可申请，一手岗位资源匹配。</p>
+          <div class="module-tags">
+            <span class="module-tag">合法工签</span>
+            <span class="module-tag">岗位匹配</span>
+            <span class="module-tag">落地保障</span>
+          </div>
+          <span class="module-link">了解更多 →</span>
         </a>
-        <a href="assess/" class="card fade-in-up text-center" style="text-decoration:none">
-          <div class="card-icon gold" style="margin:0 auto 20px">🧠</div>
-          <h3>兴趣测评</h3>
-          <p>AI分析 · 专业匹配 · 方向推荐 · 个性报告</p>
-          <span class="card-link">免费测评 →</span>
+        <a href="consult/index.html" class="module-card gold-accent fade-in-up delay-2">
+          <div class="module-icon gold-bg">💡</div>
+          <div class="module-en">AI Career</div>
+          <h3>AI就业</h3>
+          <p class="module-desc">AI技能培训 + 职业规划 + 就业对接，帮助学生和职场人掌握AI工具，抢占新赛道先机。</p>
+          <div class="module-tags">
+            <span class="module-tag">AI技能培训</span>
+            <span class="module-tag">职业规划</span>
+            <span class="module-tag">就业对接</span>
+          </div>
+          <span class="module-link">了解更多 →</span>
         </a>
-        <a href="consult/" class="card fade-in-up delay-1 text-center" style="text-decoration:none">
-          <div class="card-icon" style="margin:0 auto 20px">🤖</div>
-          <h3>AI就业顾问</h3>
-          <p>7×24在线 · 全场景覆盖 · 智能问答 · 完全免费</p>
-          <span class="card-link">立即咨询 →</span>
+        <a href="study/index.html" class="module-card fade-in-up delay-3">
+          <div class="module-icon">🌍</div>
+          <div class="module-en">Low-Age Education</div>
+          <h3>低龄升学</h3>
+          <p class="module-desc">中外联合办学/非应试路径，初中/高中提前布局，冲全球前300名校，不走高考独木桥。</p>
+          <div class="module-tags">
+            <span class="module-tag">非应试路径</span>
+            <span class="module-tag">提前布局</span>
+            <span class="module-tag">QS前300</span>
+          </div>
+          <span class="module-link">了解更多 →</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- ===== 六大留学路径 ===== -->
-  <section class="section" id="paths">
+  <!-- ===== 为什么选择我们 ===== -->
+  <section class="section bg-light" id="why-us">
     <div class="container">
       <div class="section-title fade-in-up">
-        <span class="tag">留学路径</span>
-        <h2>六大路径，找到最适合你的那条</h2>
-        <p class="subtitle">不论成绩高低、预算多少，总有一条路径能通往你的理想未来</p>
+        <span class="tag">为什么选择我们</span>
+        <h2>以专业能力与透明服务，帮你做出正确选择</h2>
+        <p class="subtitle">每一条路径的亲历者，用一手资源和实战经验帮你避坑省钱</p>
       </div>
-      <div class="paths-grid">
-        <div class="path-card fade-in-up">
-          <span class="path-tag">HOT</span>
-          <div class="path-num">01</div>
-          <div class="path-icon">🇸🇬</div>
-          <h4>弯道超车·新加坡跳板</h4>
-          <p class="path-subtitle">低分进名校</p>
-          <p class="path-desc">PSB Academy路径，语言+预科直升大二，均分70%+即可申请</p>
-        </div>
-        <div class="path-card fade-in-up delay-1">
-          <span class="path-tag">HOT</span>
-          <div class="path-num">02</div>
-          <div class="path-icon">🎓</div>
-          <h4>名校直通车·SIM</h4>
-          <p class="path-subtitle">QS前30合作大学</p>
-          <p class="path-desc">SIM路径，直通悉尼大学(QS#25)、莫纳什(QS#36)等顶尖名校</p>
-        </div>
-        <div class="path-card fade-in-up delay-2">
-          <div class="path-num">03</div>
-          <div class="path-icon">🌍</div>
-          <h4>名校直申·全球录取</h4>
-          <p class="path-subtitle">高考/平时成绩直申</p>
-          <p class="path-desc">英美澳新马俄六国名校直申通道，多种录取方式</p>
-        </div>
-        <div class="path-card fade-in-up delay-3">
-          <div class="path-num">04</div>
-          <div class="path-icon">💰</div>
-          <h4>奖学金申请</h4>
-          <p class="path-subtitle">名校+减免学费</p>
-          <p class="path-desc">学术/体育/地区奖学金全覆盖，降低留学成本</p>
-        </div>
-        <div class="path-card fade-in-up">
-          <div class="path-num">05</div>
-          <div class="path-icon">🎯</div>
-          <h4>个性化专业规划</h4>
-          <p class="path-subtitle">兴趣天赋匹配</p>
-          <p class="path-desc">AI测评+留国外/回国双路径规划，找到最优解</p>
-        </div>
-        <div class="path-card fade-in-up delay-1">
-          <div class="path-num">06</div>
-          <div class="path-icon">📚</div>
-          <h4>低龄留学规划</h4>
-          <p class="path-subtitle">初中/高中提前布局</p>
-          <p class="path-desc">新加坡/英国中学阶段入学规划，提前抢占名校名额</p>
+      <div class="founder-card fade-in-up" style="max-width:880px;margin:0 auto">
+        <h3>创始人的跨境之路</h3>
+        <p>我不是坐在办公室里做规划的顾问——我是每一条路径的亲历者。第一次出国是去澳大利亚墨尔本，在当地最大的华人旅行社工作；曾经用极低预算玩转欧洲一个月；在海外旅行社、留学机构、国内国际学校和公办学校都深耕过。走访超过 10 个国家，积累了多年一手资源和渠道。</p>
+        <p>现在，我把这些实战经验和资源整合成<strong>全球流动决策平台（Global Mobility OS）</strong>，覆盖留学、工作、旅行、海外生活等不断拓展的场景——帮你先做对决定，再安心出发。</p>
+        <div class="founder-stats">
+          <div class="founder-stat">
+            <div class="num">10<span class="suffix">+</span></div>
+            <div class="label">国家足迹</div>
+          </div>
+          <div class="founder-stat">
+            <div class="num">7<span class="suffix">年</span></div>
+            <div class="label">行业深耕</div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== 双跳板对比 ===== -->
-  <section class="section bg-light" id="dual-pathway">
-    <div class="container">
-      <div class="section-title fade-in-up">
-        <span class="tag">双跳板策略</span>
-        <h2>PSB + SIM，两条路覆盖全客群</h2>
-        <p class="subtitle">不同预算、不同基础，总有一条路适合你</p>
-      </div>
-      <div class="cards-grid cols-2">
-        <div class="card fade-in-up" style="border-top:4px solid var(--primary)">
-          <span class="badge-hot">性价比</span>
-          <div class="card-icon">🇸🇬</div>
-          <h3>PSB Academy · 低分逆袭跳板</h3>
-          <p style="font-size:1.05rem;color:var(--gray-600);margin-bottom:16px">适合预算敏感、基础一般的学生。高中均分70%+即可申请，不看高考成绩。</p>
-          <ul style="padding-left:0;list-style:none">
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 入学门槛低：均分70%+，无雅思可内测</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 合作名校：UTS(QS#96)、纽卡斯尔(QS#227)等</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 本科总费用：50-80万（3年）</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 60+年办学历史，EduTrust最高认证</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 路径：语言→预科→Diploma→本科大二→硕士</li>
-          </ul>
-          <a href="study/#path-singapore" class="card-link">查看PSB路径详情 →</a>
-        </div>
-        <div class="card fade-in-up delay-1" style="border-top:4px solid var(--gold)">
-          <span class="badge-hot">名校直通</span>
-          <div class="card-icon gold">🎓</div>
-          <h3>SIM · 名校直通车</h3>
-          <p style="font-size:1.05rem;color:var(--gray-600);margin-bottom:16px">适合预算充足、目标明确的客户。直通悉尼大学(QS#25)、LSE(QS#56)等顶尖名校。</p>
-          <ul style="padding-left:0;list-style:none">
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 天花板更高：最高QS#25（悉尼大学）</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 合作名校：悉尼大学、莫纳什、LSE、伯明翰等</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 140+专业：商科/IT/传媒/心理/工程</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 50+年办学历史，新加坡最大私立教育机构</li>
-            <li style="padding:6px 0;color:var(--gray-600)">✅ 路径：Foundation→Diploma→本科→硕士完整通道</li>
-          </ul>
-          <a href="study/#path-sim" class="card-link">查看SIM路径详情 →</a>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- ===== 合作名校展示 ===== -->
-  <section class="section" id="universities">
-    <div class="container">
-      <div class="section-title fade-in-up">
-        <span class="tag">合作名校</span>
-        <h2>15+所世界名校，任你选择</h2>
-        <p class="subtitle">所有学位由合作大学直接颁发，与本校完全一致，中留服认证</p>
-      </div>
-      <div class="uni-grid fade-in-up">
-        <div class="uni-card" style="border-top:3px solid var(--gold)">
-          <div class="uni-flag">🇦🇺 <span style="font-size:.7rem;color:var(--gold-dark)">SIM</span></div>
-          <div class="uni-name">悉尼大学</div>
-          <div class="uni-qs">QS #25</div>
-          <div class="uni-majors">商科、护理、IT</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--gold)">
-          <div class="uni-flag">🇦🇺 <span style="font-size:.7rem;color:var(--gold-dark)">SIM</span></div>
-          <div class="uni-name">莫纳什大学</div>
-          <div class="uni-qs">QS #36</div>
-          <div class="uni-majors">商科、传媒、工程</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--gold)">
-          <div class="uni-flag">🇬🇧 <span style="font-size:.7rem;color:var(--gold-dark)">SIM</span></div>
-          <div class="uni-name">伦敦大学(LSE指导)</div>
-          <div class="uni-qs">QS #56</div>
-          <div class="uni-majors">经济、金融、管理</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--gold)">
-          <div class="uni-flag">🇬🇧 <span style="font-size:.7rem;color:var(--gold-dark)">SIM</span></div>
-          <div class="uni-name">伯明翰大学</div>
-          <div class="uni-qs">QS #76</div>
-          <div class="uni-majors">会计与金融、国际商务</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--primary)">
-          <div class="uni-flag">🇦🇺 <span style="font-size:.7rem;color:var(--primary)">PSB</span></div>
-          <div class="uni-name">悉尼科技大学 UTS</div>
-          <div class="uni-qs">QS #96</div>
-          <div class="uni-majors">商科直升大二、IT</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--gold)">
-          <div class="uni-flag">🇦🇺 <span style="font-size:.7rem;color:var(--gold-dark)">SIM</span></div>
-          <div class="uni-name">RMIT 皇家墨尔本理工</div>
-          <div class="uni-qs">QS #125</div>
-          <div class="uni-majors">设计、传播、商科</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--gold)">
-          <div class="uni-flag">🇦🇺 <span style="font-size:.7rem;color:var(--gold-dark)">SIM</span></div>
-          <div class="uni-name">沃隆港大学 UOW</div>
-          <div class="uni-qs">QS #184</div>
-          <div class="uni-majors">计算机、大数据、网络安全</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--primary)">
-          <div class="uni-flag">🇦🇺 <span style="font-size:.7rem;color:var(--primary)">PSB</span></div>
-          <div class="uni-name">纽卡斯尔大学 UON</div>
-          <div class="uni-qs">QS #227</div>
-          <div class="uni-majors">国际商务、会计、金融</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--primary)">
-          <div class="uni-flag">🇳🇿 <span style="font-size:.7rem;color:var(--primary)">PSB</span></div>
-          <div class="uni-name">梅西大学 Massey</div>
-          <div class="uni-qs">QS #230</div>
-          <div class="uni-majors">管理、商业分析、HR</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--primary)">
-          <div class="uni-flag">🇦🇺 <span style="font-size:.7rem;color:var(--primary)">PSB</span></div>
-          <div class="uni-name">乐卓博大学 La Trobe</div>
-          <div class="uni-qs">QS #242</div>
-          <div class="uni-majors">生命科学、护理、商科</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--primary)">
-          <div class="uni-flag">🇬🇧 <span style="font-size:.7rem;color:var(--primary)">PSB</span></div>
-          <div class="uni-name">考文垂大学 Coventry</div>
-          <div class="uni-qs">QS 五星级</div>
-          <div class="uni-majors">商务、数字营销、传媒</div>
-        </div>
-        <div class="uni-card" style="border-top:3px solid var(--gold)">
-          <div class="uni-flag">🇺🇸 <span style="font-size:.7rem;color:var(--gold-dark)">SIM</span></div>
-          <div class="uni-name">纽约州立大学布法罗</div>
-          <div class="uni-qs">美国公立Top</div>
-          <div class="uni-majors">商科、传播、心理学</div>
-        </div>
-      </div>
-      <p class="text-center fade-in-up" style="margin-top:24px;color:var(--gray-500);font-size:.9rem">以上为部分合作院校，更多院校及专业信息请<a href="study/" style="color:var(--primary);font-weight:600">查看留学路径详情</a></p>
-    </div>
-  </section>
-
-  <!-- ===== 升学路径可视化 ===== -->
-  <section class="section bg-light" id="pathway">
-    <div class="container">
-      <div class="section-title fade-in-up">
-        <span class="tag">升学路径</span>
-        <h2>5步走完名校路</h2>
-        <p class="subtitle">从语言到硕士，完整升学通道，每一步都有人管</p>
-      </div>
-      <div class="path-flow fade-in-up">
-        <div class="path-step">
-          <div class="path-circle">1</div>
-          <div class="path-title">语言课程</div>
-          <div class="path-desc">CEP/内测<br>每级约2个月</div>
-          <div class="path-arrow"></div>
-        </div>
-        <div class="path-step">
-          <div class="path-circle">2</div>
-          <div class="path-title">预科/Foundation</div>
-          <div class="path-desc">6个月<br>基础衔接</div>
-          <div class="path-arrow"></div>
-        </div>
-        <div class="path-step">
-          <div class="path-circle">3</div>
-          <div class="path-title">国际大一 Diploma</div>
-          <div class="path-desc">12-15个月<br>专业基础</div>
-          <div class="path-arrow"></div>
-        </div>
-        <div class="path-step">
-          <div class="path-circle">4</div>
-          <div class="path-title">合作大学本科</div>
-          <div class="path-desc">直升大二<br>2年拿学位</div>
-          <div class="path-arrow"></div>
-        </div>
-        <div class="path-step">
-          <div class="path-circle">5</div>
-          <div class="path-title">名校硕士</div>
-          <div class="path-desc">QS前25~300<br>或冲刺NUS/NTU</div>
-        </div>
-      </div>
-      <div class="highlight-box fade-in-up" style="margin-top:40px;text-align:center">
-        <h4 style="text-align:center">📜 中留服认证 · 回国全认可</h4>
-        <p style="text-align:center;color:var(--gray-600)">毕业拿合作大学<strong>原版学位证</strong>，不写"PSB"或"SIM"，与本校完全一致。回国可做<strong>学历认证</strong>，考公 / 考编 / 落户 / 进国企<strong>全认可</strong>。</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 六国留学全维度对比 ===== -->
-  <section class="section" id="country-comparison">
-    <div class="container">
-      <div class="section-title fade-in-up">
-        <span class="tag">透明对比</span>
-        <h2>六国留学全维度对比</h2>
-        <p class="subtitle">费用、优势、注意事项一目了然，帮你找到最适合自己的国家</p>
-      </div>
-      <div class="country-grid">
-        <!-- 新加坡 -->
-        <div class="country-card fade-in-up">
-          <div class="country-header">
-            <span class="country-flag">🇸🇬</span>
-            <span class="country-name">新加坡</span>
-            <span class="country-tagline">私立路径本科<br>总费用约50-80万</span>
-          </div>
-          <div class="country-body">
-            <div class="country-fee">
-              <span class="fee-amount">8-14万</span>
-              <span class="fee-label">万元/年(学费)</span>
-            </div>
-            <ul class="country-advantages">
-              <li>华人社会适应快</li>
-              <li>中留服认证</li>
-              <li>学制短2-3年本科</li>
-              <li>治安良好</li>
-            </ul>
-            <ul class="country-considerations">
-              <li>公立顶尖校申请门槛高</li>
-              <li>私立校知名度有限</li>
-            </ul>
-            <div class="country-audience">适合：想快速拿证、考公考编、预算中等的学生</div>
-          </div>
-        </div>
-        <!-- 英国 -->
-        <div class="country-card fade-in-up delay-1">
-          <div class="country-header">
-            <span class="country-flag">🇬🇧</span>
-            <span class="country-name">英国</span>
-            <span class="country-tagline">硕士仅1年<br>时间成本最低</span>
-          </div>
-          <div class="country-body">
-            <div class="country-fee">
-              <span class="fee-amount">15-25万</span>
-              <span class="fee-label">万元/年(学费)</span>
-            </div>
-            <ul class="country-advantages">
-              <li>学制短本科3年硕士1年</li>
-              <li>QS百强名校密集</li>
-              <li>学术声誉全球顶尖</li>
-              <li>PSW毕业工签2年</li>
-            </ul>
-            <ul class="country-considerations">
-              <li>总费用较高</li>
-              <li>生活成本逐年上涨</li>
-            </ul>
-            <div class="country-audience">适合：追求名校学历、时间宝贵、预算充足的学生</div>
-          </div>
-        </div>
-        <!-- 澳大利亚 -->
-        <div class="country-card fade-in-up delay-2">
-          <div class="country-header">
-            <span class="country-flag">🇦🇺</span>
-            <span class="country-name">澳大利亚</span>
-            <span class="country-tagline">毕业可获<br>2-4年工签</span>
-          </div>
-          <div class="country-body">
-            <div class="country-fee">
-              <span class="fee-amount">15-22万</span>
-              <span class="fee-label">万元/年(学费)</span>
-            </div>
-            <ul class="country-advantages">
-              <li>八大名校QS排名高</li>
-              <li>毕业可申工签</li>
-              <li>移民路径清晰</li>
-              <li>自然环境宜居</li>
-            </ul>
-            <ul class="country-considerations">
-              <li>留学总费用偏高</li>
-              <li>部分专业竞争激烈</li>
-            </ul>
-            <div class="country-audience">适合：有移民意向、注重生活品质、喜欢英语国家的学生</div>
-          </div>
-        </div>
-        <!-- 马来西亚 -->
-        <div class="country-card fade-in-up delay-3">
-          <div class="country-header">
-            <span class="country-flag">🇲🇾</span>
-            <span class="country-name">马来西亚</span>
-            <span class="country-tagline">本科总费用仅<br>15-24万</span>
-          </div>
-          <div class="country-body">
-            <div class="country-fee">
-              <span class="fee-amount">5-8万</span>
-              <span class="fee-label">万元/年(学费)</span>
-            </div>
-            <ul class="country-advantages">
-              <li>学费极低性价比之王</li>
-              <li>英联邦教育体系</li>
-              <li>双联课程可获英美澳学位</li>
-              <li>全英文授课</li>
-            </ul>
-            <ul class="country-considerations">
-              <li>学校全球排名偏低</li>
-              <li>城市知名度不高</li>
-            </ul>
-            <div class="country-audience">适合：预算有限、想体验英联邦教育、跳板英美澳的学生</div>
-          </div>
-        </div>
-        <!-- 美国 -->
-        <div class="country-card fade-in-up">
-          <div class="country-header">
-            <span class="country-flag">🇺🇸</span>
-            <span class="country-name">美国</span>
-            <span class="country-tagline">全球TOP50<br>占近半数</span>
-          </div>
-          <div class="country-body">
-            <div class="country-fee">
-              <span class="fee-amount">20-35万</span>
-              <span class="fee-label">万元/年(学费)</span>
-            </div>
-            <ul class="country-advantages">
-              <li>全球顶尖学术资源</li>
-              <li>名校数量最多</li>
-              <li>STEM就业前景好</li>
-              <li>奖学金机会丰富</li>
-            </ul>
-            <ul class="country-considerations">
-              <li>费用最高</li>
-              <li>签证政策收紧</li>
-              <li>申请竞争极其激烈</li>
-            </ul>
-            <div class="country-audience">适合：学术能力强、预算充足、目标顶尖名校和STEM方向的学生</div>
-          </div>
-        </div>
-        <!-- 俄罗斯 -->
-        <div class="country-card fade-in-up delay-1">
-          <div class="country-header">
-            <span class="country-flag">🇷🇺</span>
-            <span class="country-name">俄罗斯</span>
-            <span class="country-tagline">列宾美院<br>柴可夫斯基音乐学院</span>
-          </div>
-          <div class="country-body">
-            <div class="country-fee">
-              <span class="fee-amount">3-6万</span>
-              <span class="fee-label">万元/年(学费)</span>
-            </div>
-            <ul class="country-advantages">
-              <li>学费极低</li>
-              <li>艺术音乐美术顶尖</li>
-              <li>理工科实力强</li>
-              <li>有预科俄语培训</li>
-            </ul>
-            <ul class="country-considerations">
-              <li>需额外学俄语约1年</li>
-              <li>气候寒冷</li>
-              <li>学历认证范围有限</li>
-            </ul>
-            <div class="country-audience">适合：艺术方向、预算极低、对俄语文化感兴趣的学生</div>
-          </div>
-        </div>
-      </div>
-      <p class="text-center fade-in-up" style="margin-top:32px;color:var(--gray-500);font-size:.9rem;max-width:600px;margin-left:auto;margin-right:auto">不知道选哪个国家？我们会根据你的预算、目标专业和未来规划，推荐最匹配的方案。点击右下方悬浮按钮，立即咨询专属顾问。</p>
-    </div>
-  </section>
-
-  <!-- ===== 真实案例 ===== -->
-  <section class="section" id="cases">
-    <div class="container">
-      <div class="section-title fade-in-up">
-        <span class="tag">真实案例</span>
-        <h2>逆袭故事，真实可查</h2>
-        <p class="subtitle">每一个成功案例，都是从一次咨询开始的</p>
-      </div>
-      <div class="carousel-container fade-in-up" data-carousel>
-        <div class="carousel-track">
-          <div class="carousel-slide">
-            <div class="case-card">
-              <div class="case-header">
-                <div class="case-avatar">张</div>
-                <div>
-                  <div class="case-name">张同学</div>
-                  <div class="case-meta">高中均分68 · 无雅思 → 4年完成跳板升学</div>
-                </div>
-              </div>
-              <div class="case-body">高中成绩一般，没有雅思成绩，通过PSB跳板路径：语言课程3个月 → 预科6个月 → Diploma 12个月 → uts本科2年 → 硕士申请NUS成功。全程费用比直申美国节省超60%。</div>
-              <div class="case-result">🏆 NUS(QS#8)硕士录取</div>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="case-card">
-              <div class="case-header">
-                <div class="case-avatar">李</div>
-                <div>
-                  <div class="case-name">李同学</div>
-                  <div class="case-meta">高考失利 · 预算有限 → SIM名校直通车</div>
-                </div>
-              </div>
-              <div class="case-body">高考发挥失常，不想复读。通过SIM路径Foundation+Diploma直升悉尼大学本科，3年拿到QS#25名校学位。毕业后回国考公成功，学历中留服认证无障碍。</div>
-              <div class="case-result">🏆 悉尼大学(QS#25)本科 · 回国考公上岸</div>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="case-card">
-              <div class="case-header">
-                <div class="case-avatar">王</div>
-                <div>
-                  <div class="case-name">王同学</div>
-                  <div class="case-meta">中职毕业 · 预算极低 → 马来西亚跳板</div>
-                </div>
-              </div>
-              <div class="case-body">中职毕业，预算只有15万。通过马来西亚双联课程路径，先在马来读完Diploma，再转学分到英国考文垂大学完成本科。总花费不到20万，拿到英国大学原版学位证。</div>
-              <div class="case-result">🏆 考文垂大学本科 · 总花费<20万</div>
-            </div>
-          </div>
-        </div>
-        <div class="carousel-nav">
-          <button class="carousel-btn carousel-prev">‹</button>
-          <div class="carousel-dots"></div>
-          <button class="carousel-btn carousel-next">›</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 核心优势 ===== -->
-  <section class="section bg-light" id="advantages">
-    <div class="container">
-      <div class="section-title fade-in-up">
-        <span class="tag">核心优势</span>
-        <h2>为什么选择星途 LumiPath</h2>
-        <p class="subtitle">AI赋能降本提效，一手资源直通院校，让留学更透明、更高效、更省钱</p>
-      </div>
-      <div class="cards-grid cols-4">
-        <div class="card fade-in-up text-center">
-          <div class="card-icon" style="margin:0 auto 20px">🤖</div>
-          <h3>AI赋能降本</h3>
-          <p>AI完成80%前置工作，服务费比传统中介低50%+。咨询答疑、材料整理、客户分层全部自动化。</p>
-        </div>
-        <div class="card fade-in-up delay-1 text-center">
-          <div class="card-icon gold" style="margin:0 auto 20px">🤝</div>
-          <h3>一手院校资源</h3>
-          <p>PSB+SIM双代理，直接对接院校，无中间商赚差价。15+所名校资源全覆盖。</p>
-        </div>
-        <div class="card fade-in-up delay-2 text-center">
-          <div class="card-icon" style="margin:0 auto 20px">📜</div>
-          <h3>中留服认证</h3>
-          <p>所有推荐院校均可做学历认证，回国考公/考编/落户/进国企全认可。文凭含金量有保障。</p>
-        </div>
-        <div class="card fade-in-up delay-3 text-center">
-          <div class="card-icon gold" style="margin:0 auto 20px">🔄</div>
-          <h3>全周期服务</h3>
-          <p>从测评→选校→申请→签证→落地→就业，每个环节都有人管。不只是送你出去，更帮你规划回来。</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 数据展示 ===== -->
-  <section class="section" id="stats">
-    <div class="container">
-      <div class="stats-bar">
-        <div class="stat-item fade-in-up">
-          <div class="stat-num"><span data-count="7">0</span><span class="suffix">年</span></div>
-          <div class="stat-label">行业经验</div>
-        </div>
-        <div class="stat-item fade-in-up delay-1">
-          <div class="stat-num"><span data-count="200">0</span><span class="suffix">+</span></div>
-          <div class="stat-label">成功客户</div>
-        </div>
-        <div class="stat-item fade-in-up delay-2">
-          <div class="stat-num"><span data-count="15">0</span><span class="suffix">+</span></div>
-          <div class="stat-label">合作名校</div>
-        </div>
-        <div class="stat-item fade-in-up delay-3">
-          <div class="stat-num"><span data-count="98">0</span><span class="suffix">%</span></div>
-          <div class="stat-label">通过率</div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- ===== 数据展示（已删除可疑数字） ===== -->
 
   <!-- ===== 透明定价 ===== -->
-  <section class="section bg-light" id="pricing">
-    <div class="container">
-      <div class="section-title fade-in-up">
-        <span class="tag">透明定价</span>
-        <h2>AI赋能，比传统中介省50%+</h2>
-        <p class="subtitle">基础咨询免服务费，我们靠院校返佣盈利，与您利益一致</p>
-      </div>
-      <div class="pricing-grid">
-        <div class="pricing-card fade-in-up">
-          <div class="price-name">兴趣测评</div>
-          <div class="price-amount">免费<span class="unit"></span></div>
-          <div class="price-desc">智能评估与就业方向推荐</div>
-          <div class="price-highlight">💡 测评金抵10000元签约金</div>
-          <ul class="price-features">
-            <li>AI兴趣天赋分析</li>
-            <li>专业方向匹配报告</li>
-            <li>院校推荐清单</li>
-            <li>一对一顾问解读</li>
-          </ul>
-          <button class="btn btn-secondary" data-action="consult" style="width:100%">立即咨询</button>
-        </div>
-        <div class="pricing-card featured fade-in-up delay-1">
-          <div class="price-tag">推荐</div>
-          <div class="price-name">定制咨询方案</div>
-          <div class="price-amount">299-999<span class="unit">元</span></div>
-          <div class="price-desc">资深顾问定制留学方案</div>
-          <ul class="price-features">
-            <li>1v1深度咨询（60-90分钟）</li>
-            <li>定制留学路径规划</li>
-            <li>选校方案与专业推荐</li>
-            <li>时间线规划</li>
-            <li>材料清单与指导</li>
-            <li>后续答疑支持</li>
-          </ul>
-          <button class="btn btn-primary" data-action="pay" style="width:100%">立即购买</button>
-        </div>
-        <div class="pricing-card fade-in-up delay-2">
-          <div class="price-name">全流程代办</div>
-          <div class="price-amount" style="font-size:1.8rem">比传统中介低30-50%</div>
-          <div class="price-desc">申请→签证→落地全流程</div>
-          <ul class="price-features">
-            <li>全程申请代办</li>
-            <li>文书撰写与优化</li>
-            <li>材料翻译与审核</li>
-            <li>签证办理指导</li>
-            <li>行前培训+落地接机</li>
-            <li>就业规划跟踪</li>
-          </ul>
-          <button class="btn btn-secondary" data-action="consult" style="width:100%">咨询详情</button>
-        </div>
-      </div>
-      <p class="text-center fade-in-up" style="margin-top:24px;color:var(--gray-500);font-size:.85rem">所有服务均签订正规合同 · 支持支付宝担保交易 · 不满意可退款</p>
-    </div>
-  </section>
-
   <!-- ===== Footer ===== -->
   <footer class="footer">
     <div class="container">
       <div class="footer-content">
         <div class="footer-brand">
           <div class="footer-logo"><img src="assets/images/logo.png" alt="星途 LumiPath" class="footer-logo-img"> 星途 LumiPath</div>
-          <p>综合留学服务平台。PSB+SIM双跳板+六国直申，一手资源，透明定价，全程陪伴。</p>
+          <p>全球流动决策平台。留学·工作·旅行·海外生活，一手资源，透明定价，全程陪伴。</p>
         </div>
         <div class="footer-links">
           <a href="index.html">首页</a>
-          <a href="study/">留学路径</a>
-          <a href="travel/">跨境旅游</a>
-          <a href="workvisa/">出国工作</a>
-          <a href="assess/">兴趣测评</a>
-          <a href="consult/">AI就业顾问</a>
+          <a href="study/index.html">留学</a>
+          <a href="travel/index.html">跨境旅游</a>
+          <a href="workvisa/index.html">技术移民</a>
+          <a href="consult/index.html">AI就业</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -692,13 +302,6 @@
     </div>
   </footer>
 
-  <!-- ===== Floating Consult Button ===== -->
-  <div class="float-consult">
-    <button class="float-btn" data-action="consult" title="立即咨询">
-      💬
-      <span class="float-label">立即咨询</span>
-    </button>
-  </div>
 
   <!-- ===== Payment Modal ===== -->
   <div class="overlay" id="payment-modal">
@@ -711,7 +314,23 @@
     </div>
   </div>
 
-  <script src="assets/js/main.js?v=20260728"></script>
-  <script src="assets/js/chat-widget.js?v=20260728"></script>
+  <script src="assets/js/main.js?v=20260805v19"></script>
+<!-- CDN cache refresh 2026-08-03 00:30 -->
+<!-- 8/3 12:50 redeploy -->
+<!-- 8/3 12:55 hero 4 buttons -->
+<!-- 8/3 13:20 pricing no btn -->
+<!-- 8/3 13:25 hero internal -->
+<!-- 8/3 13:35 hero cards v6 -->
+<!-- 8/3 13:42 hero 3 decision -->
+  <!-- ===== Floating Consult Button ===== -->
+  <button class="float-consult" data-action="consult" title="在线咨询">
+    <span class="float-consult-icon">💬</span>
+    <span>咨询</span>
+  </button>
+  <script src="assets/js/agent-routing.js?v=20260805v19"></script>
+  <script src="assets/js/chat-widget.js?v=20260805v19"></script>
+<!-- 8/3 13:45 hero empty + del pricing + restore float -->
+<!-- 8/3 13:48 hero hint -->
+<!-- 8/3 14:12 hero hint text -->
 </body>
 </html>
